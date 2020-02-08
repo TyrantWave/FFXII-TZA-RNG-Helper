@@ -113,7 +113,7 @@ impl<'a> RNGHelper {
         println!("Character: {:#?}", character);
         println!("Values: {:#?}", values);
         seeds
-            .into_iter() // into_par_iter
+            .into_par_iter() // into_par_iter
             .flat_map(|seed| {
                 println!("Checking seed: {}", seed);
                 let mut helper = RNGHelper::new(Some(seed), character, len);
@@ -122,7 +122,7 @@ impl<'a> RNGHelper {
                 };
                 None
             })
-            .find(|_| true) // find_any
+            .find_any(|_| true) // find_any
     }
 }
 
