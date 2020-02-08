@@ -1,0 +1,7 @@
+[workspace]
+
+members = [
+    "ffxii_tza_rng",
+    "webapp",
+    "webworker"
+]
