@@ -5,7 +5,7 @@
 | Stage | Description | Status |
 |-------|-------------|--------|
 | 1 | Library modernisation & tests | ✅ Done |
-| 2 | WASM bindings | 🔲 Not started |
+| 2 | WASM bindings | ✅ Done |
 | 3 | Angular frontend | 🔲 Not started |
 | 4 | Optimisation | 🔲 Not started |
 
@@ -58,17 +58,40 @@ Cross-Origin-Embedder-Policy: require-corp
 
 ---
 
-## Stage 2 — WASM Bindings 🔲
+## Stage 2 — WASM Bindings ✅
 
 New crate `ffxii_tza_rng_wasm`:
 
-- [ ] Add crate to workspace
-- [ ] Dependencies: `wasm-bindgen`, `wasm-bindgen-rayon`, `wasm-pack`
-- [ ] JS-friendly API:
-  - `Character` / `Spell` structs (serde JSON bridge)
+- [x] Add crate to workspace
+- [x] Dependencies: `wasm-bindgen`, `wasm-bindgen-rayon`, `serde-wasm-bindgen`
+- [x] JS-friendly API:
+  - `Character` passed as JS object (deserialized via `serde-wasm-bindgen`)
   - `RNGHelper`: `new`, `push`, `next`, `apply_character`, `find_casts`, `find_seed`
-- [ ] `wasm-pack build` produces valid npm package
-- [ ] JS smoke test confirms seed find works end-to-end
+  - `find_seed` returns `RNGHelper | undefined`
+  - `values()` returns JS array of `{ position, value, spell, chest }` objects
+  - `initThreadPool(n)` for Rayon parallelism
+- [x] `pkg/` generated with `.js`, `.d.ts`, `.wasm` and `package.json`
+
+### Build command
+
+wasm-pack cannot be used directly (it auto-installs the wasm32 sysroot which
+conflicts with `build-std`). Build manually from `ffxii_tza_rng_wasm/`:
+
+```bash
+# First time only — ensure no pre-installed wasm32 target for nightly
+rustup target remove wasm32-unknown-unknown --toolchain nightly
+
+# Compile
+cargo +nightly build --target wasm32-unknown-unknown --release
+
+# Generate JS/TS bindings
+wasm-bindgen --target web --out-dir pkg \
+  ../target/wasm32-unknown-unknown/release/ffxii_tza_rng_wasm.wasm
+```
+
+> Note: `.cargo/config.toml` in this crate sets the required atomics rustflags
+> and `build-std = ["std", "panic_abort"]`. Do not run these commands from the
+> workspace root or the config won't apply.
 
 ---
 

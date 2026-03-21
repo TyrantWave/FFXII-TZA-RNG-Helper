@@ -106,12 +106,9 @@ impl RNGHelper {
     ) -> Option<RNGHelper> {
         let seeds = min..max;
         let len = values.len();
-        println!("Character: {:#?}", character);
-        println!("Values: {:#?}", values);
         seeds
-            .into_par_iter() // into_par_iter
+            .into_par_iter()
             .flat_map(|seed| {
-                println!("Checking seed: {}", seed);
                 let mut helper = RNGHelper::new(Some(seed), character, len);
                 if helper.find_casts(character, values, Some(iters)) {
                     return Some(helper);
