@@ -1,7 +1,6 @@
-
 pub mod character;
-pub mod rng_helper;
 pub mod rng;
+pub mod rng_helper;
 pub mod spell;
 
 #[cfg(test)]
@@ -15,8 +14,8 @@ mod tests {
         let mut r = rng::RNG::from(0);
         let got: Vec<u32> = (0..10).map(|_| r.gen_rand()).collect();
         let expected = [
-            2357136044, 2546248239, 3071714933, 3626093760, 2588848963,
-            3684848379, 2340255427, 3638918503, 1819583497, 2678185683,
+            2357136044, 2546248239, 3071714933, 3626093760, 2588848963, 3684848379, 2340255427,
+            3638918503, 1819583497, 2678185683,
         ];
         assert_eq!(got, expected);
     }
@@ -26,8 +25,8 @@ mod tests {
         let mut r = rng::RNG::from(rng::RNG::DEFAULT_SEED);
         let got: Vec<u32> = (0..10).map(|_| r.gen_rand()).collect();
         let expected = [
-            1288459236, 2139177191, 74803024, 3048110697, 1213569425,
-            644319261, 488134196, 4290382401, 1747158433, 2782448644,
+            1288459236, 2139177191, 74803024, 3048110697, 1213569425, 644319261, 488134196,
+            4290382401, 1747158433, 2782448644,
         ];
         assert_eq!(got, expected);
     }
@@ -47,8 +46,8 @@ mod tests {
     #[test]
     fn spell_power_values() {
         use spell::Spell;
-        assert_eq!(Spell::Cure.power(),   20);
-        assert_eq!(Spell::Cura.power(),   46);
+        assert_eq!(Spell::Cure.power(), 20);
+        assert_eq!(Spell::Cura.power(), 46);
         assert_eq!(Spell::Curaga.power(), 86);
         assert_eq!(Spell::Curaja.power(), 120);
     }
@@ -70,13 +69,7 @@ mod tests {
     fn character_cast_table() {
         // default: level=70, magic=99, Cure, serenity=true
         let c = character::Character::default();
-        let cases: &[(u32, i32)] = &[
-            (0,   2020),
-            (1,   2021),
-            (50,  2071),
-            (100, 2121),
-            (249, 2272),
-        ];
+        let cases: &[(u32, i32)] = &[(0, 2020), (1, 2021), (50, 2071), (100, 2121), (249, 2272)];
         for &(rng_val, expected) in cases {
             assert_eq!(c.cast(rng_val), expected, "rng_val={rng_val}");
         }
@@ -128,7 +121,8 @@ mod tests {
     fn rng_helper_find_seed() {
         let character = character::Character::default();
         let values: Vec<i32> = vec![2255, 2063, 2029, 2211, 2195];
-        let h = rng_helper::RNGHelper::find_seed(&character, &values, 6_000_000, 6_500_000, 1_000).unwrap();
+        let h = rng_helper::RNGHelper::find_seed(&character, &values, 6_000_000, 6_500_000, 1_000)
+            .unwrap();
         assert_eq!(h.rng.seed, 6_357_987);
     }
 }

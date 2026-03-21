@@ -49,9 +49,15 @@ impl RNGHelper {
         self.inner.apply_character(&js_to_character(character));
     }
 
-    pub fn find_casts(&mut self, character: JsValue, values: JsValue, limit: Option<usize>) -> bool {
+    pub fn find_casts(
+        &mut self,
+        character: JsValue,
+        values: JsValue,
+        limit: Option<usize>,
+    ) -> bool {
         let vals: Vec<i32> = serde_wasm_bindgen::from_value(values).unwrap();
-        self.inner.find_casts(&js_to_character(character), &vals, limit)
+        self.inner
+            .find_casts(&js_to_character(character), &vals, limit)
     }
 
     pub fn values(&self) -> JsValue {
