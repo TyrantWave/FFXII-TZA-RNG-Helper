@@ -1,0 +1,48 @@
+<div class="character-panel">
+  <mat-form-field appearance="outline">
+    <mat-label>Level</mat-label>
+    <input
+      matInput
+      type="number"
+      min="1"
+      max="99"
+      [value]="level()"
+      (input)="onLevelInput($any($event.target).value)"
+      data-testid="level-input"
+    />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Magic</mat-label>
+    <input
+      matInput
+      type="number"
+      min="1"
+      max="99"
+      [value]="magic()"
+      (input)="onMagicInput($any($event.target).value)"
+      data-testid="magic-input"
+    />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Spell</mat-label>
+    <mat-select
+      [value]="spell()"
+      (valueChange)="onSpellChange($event)"
+      data-testid="spell-select"
+    >
+      @for (s of spells; track s) {
+        <mat-option [value]="s">{{ s }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-slide-toggle
+    [checked]="serenity()"
+    (change)="onSerenityChange($event.checked)"
+    data-testid="serenity-toggle"
+  >
+    Serenity
+  </mat-slide-toggle>
+</div>

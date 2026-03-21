@@ -1,0 +1,118 @@
+<div class="controls-panel">
+  <mat-button-toggle-group
+    [value]="mode()"
+    (change)="onModeChange($event.value)"
+    data-testid="mode-selector"
+  >
+    <mat-button-toggle value="browse">Browse</mat-button-toggle>
+    <mat-button-toggle value="findSeed">Find Seed</mat-button-toggle>
+    <mat-button-toggle value="findPosition">Find Position</mat-button-toggle>
+  </mat-button-toggle-group>
+
+  @if (mode() === 'browse') {
+    <div class="mode-content">
+      <mat-form-field appearance="outline">
+        <mat-label>Seed</mat-label>
+        <input
+          matInput
+          type="number"
+          [value]="browseSeed()"
+          (input)="browseSeed.set(+$any($event.target).value)"
+          data-testid="browse-seed"
+        />
+      </mat-form-field>
+      <button mat-flat-button (click)="onBrowseLoad()" data-testid="browse-load">Load</button>
+    </div>
+  }
+
+  @if (mode() === 'findSeed') {
+    <div class="mode-content">
+      <div class="observed-values">
+        @for (i of observedIndices; track i) {
+          <mat-form-field appearance="outline">
+            <mat-label>Heal {{ i + 1 }}</mat-label>
+            <input
+              matInput
+              type="number"
+              [value]="observedValues()[i] ?? ''"
+              (input)="setObservedValue(i, $any($event.target).value)"
+              [attr.data-testid]="'observed-value-' + i"
+            />
+          </mat-form-field>
+        }
+      </div>
+      <div class="range-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Min</mat-label>
+          <input
+            matInput
+            type="number"
+            [value]="findSeedMin()"
+            (input)="findSeedMin.set(+$any($event.target).value)"
+            data-testid="find-seed-min"
+          />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Max</mat-label>
+          <input
+            matInput
+            type="number"
+            [value]="findSeedMax()"
+            (input)="findSeedMax.set(+$any($event.target).value)"
+            data-testid="find-seed-max"
+          />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Iters</mat-label>
+          <input
+            matInput
+            type="number"
+            [value]="findSeedIters()"
+            (input)="findSeedIters.set(+$any($event.target).value)"
+            data-testid="find-seed-iters"
+          />
+        </mat-form-field>
+      </div>
+      <div class="action-row">
+        <button mat-flat-button (click)="onFindSeedSubmit()" data-testid="find-seed-submit">
+          Find Seed
+        </button>
+        @if (searchStatus() !== 'idle') {
+          <span class="status-label" data-testid="search-status">{{ statusLabel[searchStatus()] }}</span>
+        }
+      </div>
+    </div>
+  }
+
+  @if (mode() === 'findPosition') {
+    <div class="mode-content">
+      <mat-form-field appearance="outline">
+        <mat-label>Seed</mat-label>
+        <input
+          matInput
+          type="number"
+          [value]="findPosSeed()"
+          (input)="findPosSeed.set(+$any($event.target).value)"
+          data-testid="find-pos-seed"
+        />
+      </mat-form-field>
+      <div class="observed-values">
+        @for (i of observedIndices; track i) {
+          <mat-form-field appearance="outline">
+            <mat-label>Heal {{ i + 1 }}</mat-label>
+            <input
+              matInput
+              type="number"
+              [value]="findPosValues()[i] ?? ''"
+              (input)="setFindPosValue(i, $any($event.target).value)"
+              [attr.data-testid]="'find-pos-value-' + i"
+            />
+          </mat-form-field>
+        }
+      </div>
+      <button mat-flat-button (click)="onFindPositionSubmit()" data-testid="find-pos-submit">
+        Find Position
+      </button>
+    </div>
+  }
+</div>

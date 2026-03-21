@@ -1,6 +1,9 @@
 import { Injectable, computed, resource, signal } from '@angular/core';
 import init, { RNGHelper } from 'ffxii-tza-rng-wasm';
 
+export const DEFAULT_SEED = 4537;
+export const TABLE_SIZE = 100;
+
 export type SearchStatus = 'idle' | 'searching' | 'found' | 'notfound';
 
 export interface Character {
@@ -58,6 +61,13 @@ export class WasmService {
   applyCharacter(character: Character): void {
     this.helper?.apply_character(character);
     this.refresh();
+  }
+
+  findCasts(character: Character, values: number[], limit?: number): boolean {
+    if (!this.helper) return false;
+    const found = this.helper.find_casts(character, values, limit ?? null);
+    if (found) this.refresh();
+    return found;
   }
 
   findSeed(character: Character, values: number[], min: number, max: number, iters: number): void {

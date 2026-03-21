@@ -1,1 +1,20 @@
-<p>FFXII TZA RNG Helper</p>
+<div class="layout">
+  <aside class="controls-column">
+    <app-character-panel
+      [character]="character()"
+      (characterChange)="onCharacterChange($event)"
+    />
+    <mat-divider />
+    <app-controls-panel
+      [mode]="mode()"
+      [searchStatus]="wasm.searchStatus()"
+      (modeChange)="mode.set($event)"
+      (browse)="onBrowse($event)"
+      (findSeed)="onFindSeed($event)"
+      (findPosition)="onFindPosition($event)"
+    />
+  </aside>
+  <main class="table-column">
+    <app-values-table [values]="wasm.values()" />
+  </main>
+</div>

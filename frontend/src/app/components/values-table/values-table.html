@@ -1,0 +1,18 @@
+<div class="table-container">
+  <div class="table-header">
+    <span class="col-position">Position</span>
+    <span class="col-spell">Spell</span>
+    <span class="col-chest">Chest %</span>
+  </div>
+  <cdk-virtual-scroll-viewport itemSize="48" class="viewport">
+    <div
+      *cdkVirtualFor="let row of values()"
+      class="table-row"
+      data-testid="values-row"
+    >
+      <span class="col-position">{{ row.position }}</span>
+      <span class="col-spell">{{ row.spell }}</span>
+      <span class="col-chest">{{ row.chest }}</span>
+    </div>
+  </cdk-virtual-scroll-viewport>
+</div>

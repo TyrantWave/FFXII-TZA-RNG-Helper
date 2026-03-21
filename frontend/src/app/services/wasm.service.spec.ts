@@ -9,6 +9,7 @@ const { mockHelper, MockRNGHelper, mockInit } = vi.hoisted(() => {
     push: vi.fn(),
     next: vi.fn(),
     apply_character: vi.fn(),
+    find_casts: vi.fn(() => true),
     values: vi.fn((): ValueLens[] => [
       { position: 1, value: 1288459236, spell: 2065, chest: 36 },
       { position: 2, value: 2139177191, spell: 2262, chest: 91 },
@@ -222,6 +223,55 @@ describe('WasmService', () => {
       service.findSeed(defaultCharacter, [2255, 2063], 0, 100, 10);
       mockWorker.onmessage!({ data: { type: 'result', seed: 6_357_987, values: [] } });
       expect(MockRNGHelper).toHaveBeenCalledWith(6_357_987, defaultCharacter, expect.any(Number));
+    });
+  });
+
+  // ── findCasts ─────────────────────────────────────────────────────────────
+
+  describe('findCasts', () => {
+    beforeEach(() => service.createHelper(4537, defaultCharacter, 10));
+
+    it('calls find_casts on the helper with character and values', () => {
+      service.findCasts(defaultCharacter, [2065, 2262]);
+      expect(mockHelper.find_casts).toHaveBeenCalledWith(defaultCharacter, [2065, 2262], null);
+    });
+
+    it('passes limit when provided', () => {
+      service.findCasts(defaultCharacter, [2065], 5);
+      expect(mockHelper.find_casts).toHaveBeenCalledWith(defaultCharacter, [2065], 5);
+    });
+
+    it('returns true when find_casts succeeds', () => {
+      mockHelper.find_casts.mockReturnValueOnce(true);
+      expect(service.findCasts(defaultCharacter, [2065])).toBe(true);
+    });
+
+    it('returns false when find_casts fails', () => {
+      mockHelper.find_casts.mockReturnValueOnce(false);
+      expect(service.findCasts(defaultCharacter, [9999])).toBe(false);
+    });
+
+    it('refreshes signals when find_casts succeeds', () => {
+      const updated: ValueLens[] = [{ position: 5, value: 99, spell: 2065, chest: 50 }];
+      mockHelper.find_casts.mockReturnValueOnce(true);
+      mockHelper.values.mockReturnValueOnce(updated);
+      service.findCasts(defaultCharacter, [2065]);
+      expect(service.values()).toEqual(updated);
+    });
+
+    it('does not refresh signals when find_casts returns false', () => {
+      service.createHelper(4537, defaultCharacter, 10);
+      const before = service.values();
+      mockHelper.find_casts.mockReturnValueOnce(false);
+      service.findCasts(defaultCharacter, [9999]);
+      expect(service.values()).toEqual(before);
+    });
+
+  });
+
+  describe('findCasts (no helper)', () => {
+    it('returns false when no helper exists', () => {
+      expect(service.findCasts(defaultCharacter, [2065])).toBe(false);
     });
   });
 

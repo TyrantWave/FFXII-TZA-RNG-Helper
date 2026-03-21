@@ -100,7 +100,7 @@ wasm-bindgen --target web --out-dir pkg \
 - [x] Angular 21 project, Angular Material, zoneless by default
 - [x] WASM service (`WasmService`) with `resource()` async init, signals for values/seed/position
 - [x] Unit tests for WasmService (21 passing, Vitest + jsdom)
-- [ ] Web Worker for `find_seed` (Rayon thread pool runs inside worker)
+- [x] Web Worker for `find_seed` (Rayon thread pool runs inside worker)
 - [ ] UI panels:
   - Character (level, magic, spell dropdown, serenity toggle)
   - Observed heal value entry (up to 5 values)

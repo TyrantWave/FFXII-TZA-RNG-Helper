@@ -1,0 +1,38 @@
+:host {
+  height: 100%;
+}
+
+.table-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.table-header,
+.table-row {
+  display: grid;
+  grid-template-columns: 100px 1fr 100px;
+  align-items: center;
+  padding: 0 16px;
+  height: 48px;
+  box-sizing: border-box;
+}
+
+.table-header {
+  font-weight: 600;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  position: sticky;
+  top: 0;
+  background: inherit;
+  z-index: 1;
+}
+
+.table-row:nth-child(even) {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.viewport {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
