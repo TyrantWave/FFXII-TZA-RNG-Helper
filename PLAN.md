@@ -6,8 +6,9 @@
 |-------|-------------|--------|
 | 1 | Library modernisation & tests | ✅ Done |
 | 2 | WASM bindings | ✅ Done |
-| 3 | Angular frontend | 🔄 In progress |
-| 4 | Optimisation | 🔲 Not started |
+| 3 | Angular frontend | ✅ Done |
+| 4 | Real-game validation & test coverage | 🔲 Not started |
+| 5 | Optimisation | 🔲 Not started |
 
 ---
 
@@ -17,7 +18,7 @@
 |-------|----------|
 | Parallelism | `wasm-bindgen-rayon` — SharedArrayBuffer + Atomics, full Rayon in browser |
 | Hosting | Self-hosted, Nginx reverse proxy with COOP/COEP headers |
-| Frontend | Angular 19+ with Angular Material (old Yew crates removed) |
+| Frontend | Angular 21, Angular Material, zoneless, signals throughout (old Yew crates removed) |
 | Damage formula | Verified correct vs Nintendo Switch — test-locked as-is |
 
 Required headers for SharedArrayBuffer:
@@ -95,28 +96,45 @@ wasm-bindgen --target web --out-dir pkg \
 
 ---
 
-## Stage 3 — Angular Frontend 🔄
+## Stage 3 — Angular Frontend ✅
 
 - [x] Angular 21 project, Angular Material, zoneless by default
 - [x] WASM service (`WasmService`) with `resource()` async init, signals for values/seed/position
-- [x] Unit tests for WasmService (21 passing, Vitest + jsdom)
+- [x] Unit tests for WasmService (35 passing, Vitest + jsdom)
 - [x] Web Worker for `find_seed` (Rayon thread pool runs inside worker)
-- [ ] UI panels:
-  - Character (level, magic, spell dropdown, serenity toggle)
-  - Observed heal value entry (up to 5 values)
-  - Seed controls (manual seed, find seed with min/max/iters, progress indicator)
-  - Results table (position, raw RNG value, computed spell value, chest %)
-- [ ] `ng serve` works end-to-end
+- [x] `findCasts` exposed on `WasmService` for Find Position mode
+- [x] UI components (all TDD, 65 tests total):
+  - `CharacterPanel` — level, magic, spell dropdown, serenity toggle; `linkedSignal` for input sync
+  - `ControlsPanel` — Browse / Find Seed / Find Position mode toggle with per-mode inputs and search status
+  - `ValuesTable` — CDK virtual scroll, 100 rows, position / spell / chest % columns
+- [x] `AppComponent` — two-column layout, initialises with seed 4537 on WASM ready
+- [x] `ng serve` works end-to-end
+
+### Component selector prefix
+`tza-` — short, tied to the game abbreviation (e.g. `tza-values-table`, `tza-character-panel`).
 
 ### Test approach
-- **Unit tests** (Vitest + jsdom): mock `WasmService` at component level; test service logic with mocked WASM module
-- **Integration tests**: real WASM load in browser mode (deferred until UI is built)
+- **Unit tests** (Vitest + jsdom): `WasmService` mocked at component level; WASM module mocked in service tests
+- **Integration tests**: real WASM load in browser — deferred, still pending
 
 ---
 
-## Stage 4 — Optimisation 🔲
+## Stage 4 — Real-Game Validation & Test Coverage 🔲
 
-Only after Stages 1–3 are solid.
+Test the tool against a live copy of FFXII TZA to verify seed finding and RNG prediction accuracy.
+Once real-game accuracy is confirmed, harden the test suite using observed data.
+
+- [ ] Test seed finding and cast prediction against the running game
+- [ ] Capture known-good seed → heal value sequences from real gameplay
+- [ ] Add these as test cases in the Rust core (table-driven, covering spell tiers, serenity on/off, boundary levels)
+- [ ] Ensure `find_seed` and `find_casts` reproduce real observations exactly
+- [ ] Checkpoint: all real-game observations reproducible via `cargo test`
+
+---
+
+## Stage 5 — Optimisation 🔲
+
+Only after Stages 1–4 are solid.
 
 - [ ] Profile under WASM constraints
 - [ ] Candidates: tighter inner loop, SIMD via `wide` crate, smarter search bounds

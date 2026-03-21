@@ -16,7 +16,7 @@
       },
       "root": "",
       "sourceRoot": "src",
-      "prefix": "app",
+      "prefix": "tza",
       "architect": {
         "build": {
           "builder": "@angular/build:application",

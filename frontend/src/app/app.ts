@@ -6,7 +6,7 @@ import { ControlsPanel, type Mode } from './components/controls-panel/controls-p
 import { ValuesTable } from './components/values-table/values-table';
 
 @Component({
-  selector: 'app-root',
+  selector: 'tza-root',
   imports: [MatDividerModule, CharacterPanel, ControlsPanel, ValuesTable],
   templateUrl: './app.html',
   styleUrl: './app.scss',

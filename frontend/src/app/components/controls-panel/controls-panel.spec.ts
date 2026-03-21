@@ -10,7 +10,7 @@ type FindSeedEvent = { values: number[]; min: number; max: number; iters: number
 type FindPositionEvent = { seed: number; values: number[] };
 
 @Component({
-  template: `<app-controls-panel
+  template: `<tza-controls-panel
     [mode]="mode()"
     [searchStatus]="searchStatus()"
     (modeChange)="mode.set($event)"

@@ -14,7 +14,7 @@ const DEFAULT_MAX = 16_777_216;
 const DEFAULT_ITERS = 100;
 
 @Component({
-  selector: 'app-controls-panel',
+  selector: 'tza-controls-panel',
   imports: [MatButtonToggleModule, MatFormFieldModule, MatInputModule, MatButtonModule, FormsModule],
   templateUrl: './controls-panel.html',
   styleUrl: './controls-panel.scss',

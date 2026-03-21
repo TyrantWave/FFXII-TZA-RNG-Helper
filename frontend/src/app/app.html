@@ -1,11 +1,11 @@
 <div class="layout">
   <aside class="controls-column">
-    <app-character-panel
+    <tza-character-panel
       [character]="character()"
       (characterChange)="onCharacterChange($event)"
     />
     <mat-divider />
-    <app-controls-panel
+    <tza-controls-panel
       [mode]="mode()"
       [searchStatus]="wasm.searchStatus()"
       (modeChange)="mode.set($event)"
@@ -15,6 +15,6 @@
     />
   </aside>
   <main class="table-column">
-    <app-values-table [values]="wasm.values()" />
+    <tza-values-table [values]="wasm.values()" />
   </main>
 </div>

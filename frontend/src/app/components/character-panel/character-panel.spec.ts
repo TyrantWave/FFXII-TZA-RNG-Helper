@@ -8,7 +8,7 @@ import type { Character } from '../../services/wasm.service';
 const DEFAULT: Character = { level: 70, magic: 99, spell: 'Cure', serenity: true };
 
 @Component({
-  template: `<app-character-panel
+  template: `<tza-character-panel
     [character]="character()"
     (characterChange)="onChange($event)"
   />`,

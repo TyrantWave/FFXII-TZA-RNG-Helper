@@ -3,7 +3,7 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
 import type { ValueLens } from '../../services/wasm.service';
 
 @Component({
-  selector: 'app-values-table',
+  selector: 'tza-values-table',
   imports: [ScrollingModule],
   templateUrl: './values-table.html',
   styleUrl: './values-table.scss',

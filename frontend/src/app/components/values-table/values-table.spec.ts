@@ -11,7 +11,7 @@ const SAMPLE_VALUES: ValueLens[] = [
 ];
 
 @Component({
-  template: '<app-values-table [values]="values()" />',
+  template: '<tza-values-table [values]="values()" />',
   imports: [ValuesTable],
 })
 class TestHost {
