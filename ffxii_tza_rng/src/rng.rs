@@ -36,8 +36,9 @@ impl RNG {
         let mut mti = 1;
         while mti < RNG::N {
             let operand = mt[mti - 1] ^ (mt[mti - 1] >> 30);
-            let mut val =
-                1_812_433_253u32.wrapping_mul(operand).wrapping_add(mti as u32);
+            let mut val = 1_812_433_253u32
+                .wrapping_mul(operand)
+                .wrapping_add(mti as u32);
             val &= 0xffff_ffff;
             mt[mti] = val;
             mti += 1;
