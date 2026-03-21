@@ -1,7 +1,6 @@
 [workspace]
+resolver = "2"
 
 members = [
     "ffxii_tza_rng",
-    "webapp",
-    "webworker"
 ]
