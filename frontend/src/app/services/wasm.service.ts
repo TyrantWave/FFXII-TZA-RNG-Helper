@@ -1,6 +1,8 @@
 import { Injectable, computed, resource, signal } from '@angular/core';
 import init, { RNGHelper } from 'ffxii-tza-rng-wasm';
 
+export type SearchStatus = 'idle' | 'searching' | 'found' | 'notfound';
+
 export interface Character {
   level: number;
   magic: number;
@@ -24,7 +26,10 @@ export class WasmService {
   readonly status = computed(() => this.initResource.status());
   readonly isReady = computed(() => this.initResource.status() === 'resolved');
 
+  readonly searchStatus = signal<SearchStatus>('idle');
+
   private helper: RNGHelper | null = null;
+  private worker: Worker | null = null;
 
   private readonly _values = signal<ValueLens[]>([]);
   private readonly _seed = signal<number | null>(null);
@@ -53,6 +58,24 @@ export class WasmService {
   applyCharacter(character: Character): void {
     this.helper?.apply_character(character);
     this.refresh();
+  }
+
+  findSeed(character: Character, values: number[], min: number, max: number, iters: number): void {
+    if (!this.worker) {
+      this.worker = new Worker(new URL('../../workers/rng.worker', import.meta.url), { type: 'module' });
+      this.worker.onmessage = ({ data }) => this.handleWorkerResult(data, character, iters);
+    }
+    this.searchStatus.set('searching');
+    this.worker.postMessage({ type: 'findSeed', character, values, min, max, iters });
+  }
+
+  private handleWorkerResult(data: { seed: number | null }, character: Character, iters: number): void {
+    if (data.seed !== null) {
+      this.createHelper(data.seed, character, iters);
+      this.searchStatus.set('found');
+    } else {
+      this.searchStatus.set('notfound');
+    }
   }
 
   private refresh(): void {

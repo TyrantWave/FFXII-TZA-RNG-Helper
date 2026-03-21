@@ -164,6 +164,67 @@ describe('WasmService', () => {
     });
   });
 
+  // ── findSeed ──────────────────────────────────────────────────────────────
+
+  describe('findSeed', () => {
+    let mockWorker: { postMessage: ReturnType<typeof vi.fn>; onmessage: ((e: { data: any }) => void) | null };
+
+    beforeEach(() => {
+      mockWorker = { postMessage: vi.fn(), onmessage: null };
+      vi.stubGlobal('Worker', vi.fn(function () { return mockWorker; }));
+    });
+
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it('starts in idle state', () => {
+      expect(service.searchStatus()).toBe('idle');
+    });
+
+    it('sets searchStatus to searching when called', () => {
+      service.findSeed(defaultCharacter, [2255, 2063], 0, 100, 10);
+      expect(service.searchStatus()).toBe('searching');
+    });
+
+    it('posts findSeed message to the worker', () => {
+      service.findSeed(defaultCharacter, [2255, 2063], 6_000_000, 6_500_000, 1000);
+      expect(mockWorker.postMessage).toHaveBeenCalledWith({
+        type: 'findSeed',
+        character: defaultCharacter,
+        values: [2255, 2063],
+        min: 6_000_000,
+        max: 6_500_000,
+        iters: 1000,
+      });
+    });
+
+    it('creates the worker lazily and reuses it', () => {
+      service.findSeed(defaultCharacter, [2255], 0, 100, 10);
+      service.findSeed(defaultCharacter, [2255], 0, 100, 10);
+      expect(Worker).toHaveBeenCalledTimes(1);
+    });
+
+    it('sets searchStatus to found and populates helper when seed is returned', () => {
+      service.findSeed(defaultCharacter, [2255, 2063], 0, 100, 10);
+      mockWorker.onmessage!({ data: { type: 'result', seed: 6_357_987, values: mockHelper.values() } });
+      expect(service.searchStatus()).toBe('found');
+      expect(service.seed()).toBe(4537); // from mockHelper.seed()
+    });
+
+    it('sets searchStatus to notfound when seed is null', () => {
+      service.findSeed(defaultCharacter, [2255, 2063], 0, 100, 10);
+      mockWorker.onmessage!({ data: { type: 'result', seed: null, values: null } });
+      expect(service.searchStatus()).toBe('notfound');
+    });
+
+    it('calls createHelper with found seed', () => {
+      service.findSeed(defaultCharacter, [2255, 2063], 0, 100, 10);
+      mockWorker.onmessage!({ data: { type: 'result', seed: 6_357_987, values: [] } });
+      expect(MockRNGHelper).toHaveBeenCalledWith(6_357_987, defaultCharacter, expect.any(Number));
+    });
+  });
+
   // ── applyCharacter ────────────────────────────────────────────────────────
 
   describe('applyCharacter', () => {
