@@ -6,7 +6,7 @@
 |-------|-------------|--------|
 | 1 | Library modernisation & tests | ✅ Done |
 | 2 | WASM bindings | ✅ Done |
-| 3 | Angular frontend | 🔲 Not started |
+| 3 | Angular frontend | 🔄 In progress |
 | 4 | Optimisation | 🔲 Not started |
 
 ---
@@ -95,17 +95,22 @@ wasm-bindgen --target web --out-dir pkg \
 
 ---
 
-## Stage 3 — Angular Frontend 🔲
+## Stage 3 — Angular Frontend 🔄
 
-- [ ] Angular 19 project, Angular Material
-- [ ] WASM loaded as Angular service (lazy, async)
-- [ ] Seed-finding via Web Worker (Rayon thread pool runs inside worker)
+- [x] Angular 21 project, Angular Material, zoneless by default
+- [x] WASM service (`WasmService`) with `resource()` async init, signals for values/seed/position
+- [x] Unit tests for WasmService (21 passing, Vitest + jsdom)
+- [ ] Web Worker for `find_seed` (Rayon thread pool runs inside worker)
 - [ ] UI panels:
   - Character (level, magic, spell dropdown, serenity toggle)
   - Observed heal value entry (up to 5 values)
   - Seed controls (manual seed, find seed with min/max/iters, progress indicator)
   - Results table (position, raw RNG value, computed spell value, chest %)
 - [ ] `ng serve` works end-to-end
+
+### Test approach
+- **Unit tests** (Vitest + jsdom): mock `WasmService` at component level; test service logic with mocked WASM module
+- **Integration tests**: real WASM load in browser mode (deferred until UI is built)
 
 ---
 
