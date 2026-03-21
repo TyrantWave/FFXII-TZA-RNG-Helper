@@ -1,4 +1,4 @@
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
 #[derive(Serialize, Deserialize, Debug, Copy, Clone)]

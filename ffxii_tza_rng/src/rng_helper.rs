@@ -1,5 +1,5 @@
 use rayon::prelude::*;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 use crate::{character, rng};
 
@@ -21,7 +21,7 @@ pub struct RNGHelper {
     pub rng: rng::RNG,
 }
 
-impl<'a> RNGHelper {
+impl RNGHelper {
     const LIMIT: usize = 100_000; // How many iterations to test
 
     /// Generates a new RNG list, with `iters` iterations filled
@@ -72,14 +72,10 @@ impl<'a> RNGHelper {
     pub fn find_casts(
         &mut self,
         character: &character::Character,
-        values: &Vec<i32>,
+        values: &[i32],
         limit: Option<usize>,
     ) -> bool {
-        let loop_limit = if limit.is_some() {
-            limit.unwrap()
-        } else {
-            RNGHelper::LIMIT
-        };
+        let loop_limit = limit.unwrap_or(RNGHelper::LIMIT);
         for _ in 0..loop_limit {
             self.next(character);
             let mut matched = true;
@@ -103,7 +99,7 @@ impl<'a> RNGHelper {
     /// This may be super slow
     pub fn find_seed(
         character: &character::Character,
-        values: &Vec<i32>,
+        values: &[i32],
         min: u32,
         max: u32,
         iters: usize,

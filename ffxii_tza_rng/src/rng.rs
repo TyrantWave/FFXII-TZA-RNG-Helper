@@ -1,4 +1,4 @@
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RNG {
@@ -32,12 +32,12 @@ impl RNG {
     /// Initialise an RNG (mt[N]) with a given seed
     fn sgenrand(seed: u32) -> RNG {
         let mut mt = vec![0; RNG::N];
-        mt[0] = seed & 0xffff_ffff;
+        mt[0] = seed;
         let mut mti = 1;
         while mti < RNG::N {
             let operand = mt[mti - 1] ^ (mt[mti - 1] >> 30);
             let mut val =
-                ((1_812_433_253u32.wrapping_mul(operand)) as u32).wrapping_add(mti as u32);
+                1_812_433_253u32.wrapping_mul(operand).wrapping_add(mti as u32);
             val &= 0xffff_ffff;
             mt[mti] = val;
             mti += 1;
@@ -51,11 +51,6 @@ impl RNG {
         }
     }
 
-    /// <summary>
-    /// Generates the next random number in the sequence
-    /// on [0,0xffffffff]-interval.
-    /// </summary>
-    /// <returns>The next random number in the sequence.</returns>
     pub fn gen_rand(&mut self) -> u32 {
         let mut y;
 
@@ -72,7 +67,7 @@ impl RNG {
                     self.mt[kk - (RNG::N - RNG::M)] ^ (y >> 1) ^ RNG::MAG_01[y as usize & 1];
                 kk += 1;
             }
-            y = (self.mt[RNG::N as usize - 1] & RNG::UPPER_MASK) | (self.mt[0] & RNG::LOWER_MASK);
+            y = (self.mt[RNG::N - 1] & RNG::UPPER_MASK) | (self.mt[0] & RNG::LOWER_MASK);
             self.mt[RNG::N - 1] = self.mt[RNG::M - 1] ^ (y >> 1) ^ RNG::MAG_01[y as usize & 1];
 
             self.mti = 0;
