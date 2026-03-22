@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use serde::{Deserialize, Serialize};
 
 use crate::{character, rng};
@@ -16,7 +18,7 @@ pub struct ValueLens {
 /// Additionally, can locate the next set of matched `Spell` values in the given rng
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RNGHelper {
-    pub values: Vec<ValueLens>,
+    pub values: VecDeque<ValueLens>,
     pub rng: rng::RNG,
 }
 
@@ -29,7 +31,7 @@ impl RNGHelper {
             Some(s) => rng::RNG::from(s),
             _ => rng::RNG::new(),
         };
-        let values = Vec::new();
+        let values = VecDeque::with_capacity(iters);
         let mut helper = RNGHelper { values, rng: _rng };
         for _ in 0..iters {
             helper.push(character);
@@ -40,13 +42,13 @@ impl RNGHelper {
 
     /// Removes the first entry from the value lists
     fn pop(&mut self) {
-        self.values.remove(0);
+        self.values.pop_front();
     }
 
     /// Adds new entries to the end of the value lists
     pub fn push(&mut self, character: &character::Character) {
         let next_rng = self.rng.gen_rand();
-        self.values.push(ValueLens {
+        self.values.push_back(ValueLens {
             position: self.rng.position,
             value: next_rng,
             spell: character.cast(next_rng),

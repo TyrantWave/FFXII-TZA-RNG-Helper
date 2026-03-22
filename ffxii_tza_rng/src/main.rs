@@ -55,7 +55,7 @@ fn main() {
             }
             for _ in 0..5 {
                 helper.push(&character);
-                let v = helper.values.last().unwrap();
+                let v = helper.values.back().unwrap();
                 println!("  pos {:>4}  cure={}", v.position, v.spell);
             }
         }
