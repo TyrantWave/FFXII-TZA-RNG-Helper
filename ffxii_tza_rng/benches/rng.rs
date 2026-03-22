@@ -181,6 +181,56 @@ fn bench_find_seed(c: &mut Criterion) {
     group.finish();
 }
 
+// ── 6. find_seed_parallel ─────────────────────────────────────────────────────
+//
+// Same windows as bench_find_seed so results are directly comparable.
+// Thread spawn + join overhead is included in each measurement.
+
+fn bench_find_seed_parallel(c: &mut Criterion) {
+    let mut group = c.benchmark_group("rng_helper/find_seed_parallel");
+    let ch = default_char();
+
+    group.bench_function("1k_seeds_match_at_start", |b| {
+        b.iter(|| {
+            black_box(rng_helper::RNGHelper::find_seed_parallel(
+                &ch,
+                black_box(KNOWN_VALUES),
+                black_box(KNOWN_SEED - 10),
+                black_box(KNOWN_SEED + 1000),
+                500,
+            ))
+        });
+    });
+
+    group.bench_function("1k_seeds_no_match", |b| {
+        let impossible: Vec<i32> = vec![9999, 9999, 9999];
+        b.iter(|| {
+            black_box(rng_helper::RNGHelper::find_seed_parallel(
+                &ch,
+                black_box(&impossible),
+                black_box(0),
+                black_box(1_000),
+                500,
+            ))
+        });
+    });
+
+    group.bench_function("10k_seeds_no_match", |b| {
+        let impossible: Vec<i32> = vec![9999, 9999, 9999];
+        b.iter(|| {
+            black_box(rng_helper::RNGHelper::find_seed_parallel(
+                &ch,
+                black_box(&impossible),
+                black_box(0),
+                black_box(10_000),
+                500,
+            ))
+        });
+    });
+
+    group.finish();
+}
+
 criterion_group!(
     benches,
     bench_rng_gen,
@@ -188,5 +238,6 @@ criterion_group!(
     bench_helper_new,
     bench_find_casts,
     bench_find_seed,
+    bench_find_seed_parallel,
 );
 criterion_main!(benches);

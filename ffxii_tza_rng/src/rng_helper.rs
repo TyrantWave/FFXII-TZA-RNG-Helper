@@ -137,6 +137,40 @@ impl RNGHelper {
             })
         })
     }
+
+    /// Parallel variant of `find_seed` — splits the range across all available threads.
+    pub fn find_seed_parallel(
+        character: &character::Character,
+        values: &[i32],
+        min: u32,
+        max: u32,
+        iters: usize,
+    ) -> Option<RNGHelper> {
+        use std::sync::Arc;
+
+        let n = std::thread::available_parallelism()
+            .map(|p| p.get())
+            .unwrap_or(4);
+        let chunk = ((max - min) as usize).div_ceil(n) as u32;
+        let (tx, rx) = std::sync::mpsc::channel();
+        let values = Arc::new(values.to_vec());
+
+        for i in 0..n as u32 {
+            let tx = tx.clone();
+            let character = *character;
+            let values = Arc::clone(&values);
+            let w_min = min + i * chunk;
+            let w_max = (w_min + chunk).min(max);
+            std::thread::spawn(move || {
+                let _ = tx.send(RNGHelper::find_seed(
+                    &character, &values, w_min, w_max, iters,
+                ));
+            });
+        }
+        drop(tx);
+
+        rx.into_iter().find_map(|r| r)
+    }
 }
 
 impl Default for RNGHelper {

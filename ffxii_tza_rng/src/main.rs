@@ -1,11 +1,9 @@
 use ffxii_tza_rng::{character, rng_helper, spell};
-use std::io::Write;
 use std::str::FromStr;
 
 const MIN: u32 = 6_000_000;
 const MAX: u32 = 16_777_216;
 const ITERS: usize = 500;
-const PROGRESS_INTERVAL: u32 = 100_000;
 const TRAILING: usize = 5;
 
 fn usage(bin: &str) -> ! {
@@ -88,27 +86,15 @@ fn cmd_find_seed(args: &[String]) {
 
     let spell_label = sp.name().to_lowercase();
     let character = character::Character::new(level, magic, sp, serenity);
-    let len = values.len();
+    let n = std::thread::available_parallelism()
+        .map(|p| p.get())
+        .unwrap_or(4);
+    eprintln!(
+        "Searching seeds {}..{} across {} threads (iters={})...",
+        MIN, MAX, n, ITERS
+    );
 
-    eprintln!("Searching seeds {}..{} (iters={})...", MIN, MAX, ITERS);
-
-    let mut result: Option<rng_helper::RNGHelper> = None;
-    for seed in MIN..MAX {
-        if seed % PROGRESS_INTERVAL == 0 && seed > MIN {
-            let pct = seed * 100 / MAX;
-            print!("\r  {}%  ({}/{})", pct, seed, MAX);
-            std::io::stdout().flush().unwrap();
-        }
-        let mut helper = rng_helper::RNGHelper::new(Some(seed), &character, len);
-        if helper.find_casts(&character, &values, Some(ITERS)) {
-            result = Some(helper);
-            break;
-        }
-    }
-
-    print!("\r");
-
-    match result {
+    match rng_helper::RNGHelper::find_seed_parallel(&character, &values, MIN, MAX, ITERS) {
         None => eprintln!("No seed found in range {}..{}", MIN, MAX),
         Some(mut helper) => print_results(&mut helper, &character, &spell_label),
     }
