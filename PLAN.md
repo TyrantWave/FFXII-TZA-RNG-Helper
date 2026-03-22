@@ -185,6 +185,7 @@ TDD throughout (fake timers for elapsed, state tests for card, viewport mock for
 - Auto-advance table on next cast (track position with a button)
 - Chest % highlighting for target values
 - Export/share current seed + position as a URL
+- Angular ESLint (`@angular-eslint/eslint-plugin`) — standard linting for Angular projects; configure rules and add `ng lint` step to CI
 
 ### Map browser
 
