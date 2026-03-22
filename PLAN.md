@@ -9,7 +9,7 @@
 | 3 | Angular frontend | ✅ Done |
 | 4 | Real-game validation & test coverage | ✅ Done |
 | 5 | Optimisation | ✅ Done |
-| 6 | UX feedback improvements | 🔲 Not started |
+| 6 | UX feedback improvements | ✅ Done |
 
 ---
 
