@@ -1,0 +1,1 @@
+# target-cpu=native was benchmarked and regressed MT19937 (~+5%) — omitted intentionally

@@ -8,32 +8,30 @@ pub struct Character {
     pub magic: u8,
     pub spell: spell::Spell,
     pub serenity: bool,
+    // Precomputed constants derived from the fields above — avoids recomputing on every cast().
+    modulus: u32, // (spell.power() * 12.5).floor() — the bonus range
+    base: f64,    // spell.power() * base_multiplier — the constant heal component
+    scale: f64,   // base_multiplier / 100.0 — converts bonus remainder to heal contribution
 }
 
 impl Character {
     pub fn new(level: u8, magic: u8, spell: spell::Spell, serenity: bool) -> Character {
+        let base_multiplier = (2.0 + magic as f64 * (level as u16 + magic as u16) as f64 / 256.0)
+            * if serenity { 1.5 } else { 1.0 };
+        let power = spell.power() as f64;
         Character {
             level,
             magic,
             spell,
             serenity,
+            modulus: (power * 12.5).floor() as u32,
+            base: power * base_multiplier,
+            scale: base_multiplier / 100.0,
         }
     }
 
-    fn base_multiplier(&self) -> f64 {
-        (2.0 + self.magic as f64 * (self.level + self.magic) as f64 / 256.0)
-            * (if self.serenity { 1.5 } else { 1.0 })
-    }
-
     pub fn cast(&self, rng_val: u32) -> i32 {
-        let bonus: f64 =
-            (rng_val % (self.spell.power() as f64 * 12.5).floor() as u32) as f64 / 100.0;
-        self.calculate_heal(bonus)
-    }
-
-    fn calculate_heal(&self, bonus: f64) -> i32 {
-        let total_power = self.spell.power() as f64 + bonus;
-        (total_power * self.base_multiplier()) as i32
+        (self.base + (rng_val % self.modulus) as f64 * self.scale) as i32
     }
 }
 

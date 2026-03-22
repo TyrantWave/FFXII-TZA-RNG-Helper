@@ -17,7 +17,6 @@ impl RNG {
     const N: usize = 624;
     const M: usize = 397;
     const MATRIX_A: u32 = 0x9908_b0df; // constant vector a
-    const MAG_01: [u32; 2] = [0, RNG::MATRIX_A];
     const UPPER_MASK: u32 = 0x8000_0000; // most significant w-r bits
     const LOWER_MASK: u32 = 0x7fff_ffff; // least significant r bits
 
@@ -52,6 +51,12 @@ impl RNG {
         }
     }
 
+    // Branchless equivalent of MAG_01[y & 1]: produces 0 or MATRIX_A.
+    #[inline(always)]
+    fn mag(y: u32) -> u32 {
+        (y & 1).wrapping_neg() & RNG::MATRIX_A
+    }
+
     pub fn gen_rand(&mut self) -> u32 {
         let mut y;
 
@@ -59,17 +64,16 @@ impl RNG {
             let mut kk = 0;
             while kk < (RNG::N - RNG::M) {
                 y = (self.mt[kk] & RNG::UPPER_MASK) | (self.mt[kk + 1] & RNG::LOWER_MASK);
-                self.mt[kk] = self.mt[kk + RNG::M] ^ (y >> 1) ^ RNG::MAG_01[y as usize & 1];
+                self.mt[kk] = self.mt[kk + RNG::M] ^ (y >> 1) ^ RNG::mag(y);
                 kk += 1;
             }
             while kk < (RNG::N - 1) {
                 y = (self.mt[kk] & RNG::UPPER_MASK) | (self.mt[kk + 1] & RNG::LOWER_MASK);
-                self.mt[kk] =
-                    self.mt[kk - (RNG::N - RNG::M)] ^ (y >> 1) ^ RNG::MAG_01[y as usize & 1];
+                self.mt[kk] = self.mt[kk - (RNG::N - RNG::M)] ^ (y >> 1) ^ RNG::mag(y);
                 kk += 1;
             }
             y = (self.mt[RNG::N - 1] & RNG::UPPER_MASK) | (self.mt[0] & RNG::LOWER_MASK);
-            self.mt[RNG::N - 1] = self.mt[RNG::M - 1] ^ (y >> 1) ^ RNG::MAG_01[y as usize & 1];
+            self.mt[RNG::N - 1] = self.mt[RNG::M - 1] ^ (y >> 1) ^ RNG::mag(y);
 
             self.mti = 0;
         }

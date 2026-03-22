@@ -5,3 +5,7 @@ members = [
     "ffxii_tza_rng",
     "ffxii_tza_rng_wasm",
 ]
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
