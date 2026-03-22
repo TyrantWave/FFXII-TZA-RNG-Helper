@@ -3,6 +3,9 @@ import init, { RNGHelper } from 'ffxii-tza-rng-wasm';
 
 export const DEFAULT_SEED = 4537;
 export const TABLE_SIZE = 100;
+export const DEFAULT_MIN = 6_000_000;
+export const DEFAULT_MAX = 16_777_216;
+export const DEFAULT_ITERS = 500;
 
 export type SearchStatus = 'idle' | 'searching' | 'found' | 'notfound';
 
@@ -73,15 +76,16 @@ export class WasmService {
   findSeed(character: Character, values: number[], min: number, max: number, iters: number): void {
     if (!this.worker) {
       this.worker = new Worker(new URL('../../workers/rng.worker', import.meta.url), { type: 'module' });
-      this.worker.onmessage = ({ data }) => this.handleWorkerResult(data, character);
     }
+    this.worker.onmessage = ({ data }) => this.handleWorkerResult(data, character, values);
     this.searchStatus.set('searching');
     this.worker.postMessage({ type: 'findSeed', character, values, min, max, iters });
   }
 
-  private handleWorkerResult(data: { seed: number | null }, character: Character): void {
+  private handleWorkerResult(data: { seed: number | null }, character: Character, values: number[]): void {
     if (data.seed !== null) {
       this.createHelper(data.seed, character, TABLE_SIZE);
+      this.findCasts(character, values, DEFAULT_ITERS);
       this.searchStatus.set('found');
     } else {
       this.searchStatus.set('notfound');

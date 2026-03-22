@@ -6,11 +6,8 @@
     />
     <mat-divider />
     <tza-controls-panel
-      [mode]="mode()"
       [searchStatus]="wasm.searchStatus()"
       [(browseSeed)]="browseSeed"
-      (modeChange)="mode.set($event)"
-      (browse)="onBrowse($event)"
       (findSeed)="onFindSeed($event)"
       (findPosition)="onFindPosition($event)"
     />

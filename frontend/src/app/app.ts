@@ -1,8 +1,8 @@
 import { Component, effect, inject, signal } from '@angular/core';
 import { MatDividerModule } from '@angular/material/divider';
-import { WasmService, DEFAULT_SEED, TABLE_SIZE, type Character } from './services/wasm.service';
+import { WasmService, DEFAULT_SEED, DEFAULT_MIN, DEFAULT_MAX, DEFAULT_ITERS, TABLE_SIZE, type Character } from './services/wasm.service';
 import { DEFAULT_CHARACTER, CharacterPanel } from './components/character-panel/character-panel';
-import { ControlsPanel, type Mode } from './components/controls-panel/controls-panel';
+import { ControlsPanel } from './components/controls-panel/controls-panel';
 import { ValuesTable } from './components/values-table/values-table';
 
 @Component({
@@ -15,7 +15,6 @@ export class App {
   readonly wasm = inject(WasmService);
 
   readonly character = signal<Character>(DEFAULT_CHARACTER);
-  readonly mode = signal<Mode>('browse');
   readonly browseSeed = signal(DEFAULT_SEED);
 
   constructor() {
@@ -26,7 +25,6 @@ export class App {
     effect(() => {
       if (this.wasm.searchStatus() !== 'found') return;
       this.browseSeed.set(this.wasm.seed() ?? DEFAULT_SEED);
-      this.mode.set('browse');
     });
   }
 
@@ -35,16 +33,12 @@ export class App {
     this.wasm.applyCharacter(c);
   }
 
-  onBrowse(event: { seed: number }): void {
-    this.wasm.createHelper(event.seed, this.character(), TABLE_SIZE);
+  onFindSeed({ values }: { values: number[] }): void {
+    this.wasm.findSeed(this.character(), values, DEFAULT_MIN, DEFAULT_MAX, DEFAULT_ITERS);
   }
 
-  onFindSeed(event: { values: number[]; min: number; max: number; iters: number }): void {
-    this.wasm.findSeed(this.character(), event.values, event.min, event.max, event.iters);
-  }
-
-  onFindPosition(event: { seed: number; values: number[] }): void {
-    this.wasm.createHelper(event.seed, this.character(), TABLE_SIZE);
-    this.wasm.findCasts(this.character(), event.values);
+  onFindPosition({ values }: { values: number[] }): void {
+    this.wasm.createHelper(this.browseSeed(), this.character(), TABLE_SIZE);
+    this.wasm.findCasts(this.character(), values, DEFAULT_ITERS);
   }
 }
