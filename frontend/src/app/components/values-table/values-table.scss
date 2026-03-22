@@ -27,16 +27,35 @@
   z-index: 1;
 }
 
-.table-row:nth-child(even) {
-  background: rgba(0, 0, 0, 0.04);
+.table-row {
+  cursor: pointer;
+  transition: background 0.1s ease, opacity 0.1s ease;
+
+  &:nth-child(even) {
+    background: rgba(0, 0, 0, 0.04);
+  }
+
+  &.past {
+    opacity: 0.45;
+  }
+
+  &.next {
+    background: color-mix(in srgb, #4caf50 18%, transparent);
+    border-left: 3px solid #4caf50;
+    font-weight: 600;
+    opacity: 1;
+  }
+
+  &.highlighted {
+    border-left: 3px solid var(--mat-sys-primary);
+  }
+
+  // .past.highlighted — muted opacity (from .past) + primary left border (from .highlighted)
+  // No additional override needed; class combination handles it.
 }
 
 .viewport {
   flex: 1;
   min-height: 0;
   height: 100%;
-}
-
-.table-row.highlighted {
-  background: color-mix(in srgb, var(--mat-sys-primary) 15%, transparent);
 }

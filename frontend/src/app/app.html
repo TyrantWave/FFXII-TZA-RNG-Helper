@@ -19,7 +19,8 @@
     <tza-values-table
       [values]="wasm.values()"
       [highlightRange]="highlightRange()"
-      [scrollToPosition]="highlightRange()?.start ?? null"
+      [pivotPosition]="pivotPosition()"
+      (rowClick)="onRowClick($event)"
     />
   </main>
 </div>
