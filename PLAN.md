@@ -138,3 +138,28 @@ Only after Stages 1–4 are solid.
 - Auto-advance table on next cast (track position with a button)
 - Chest % highlighting for target values
 - Export/share current seed + position as a URL
+
+### Map browser
+
+A browsable map viewer showing chest locations and loot tables per zone.
+
+Source material: a set of ~48 area folders in `FFXII -IZJS- Maps/` (Tirpitz Luminare, freely distributable). Each folder contains numbered sub-area JPGs (game screenshots with chest locations annotated) and a README explaining the format.
+
+Chest data format (embedded in images as text overlays):
+```
+ID | respawn | spawn% | gil% | ~gil_max | item1            | item2
+                  with Diamond Armlet | DA_item1 (95%)   | DA_item2 (5%)
+```
+
+**Caveats:**
+- Data is IZJS (PS2 International), not TZA — largely compatible but some chests/items differ in TZA
+- Chest data is **baked into the images**, not machine-readable — full interactivity requires transcribing all chest tables to JSON (significant effort)
+- Phase 1 could simply display the images as a navigable reference, with no data layer
+
+**Phase 1 (image browser):** area → sub-area navigation, display the existing JPGs as-is. Low effort, immediately useful.
+
+**Phase 2 (data layer):** transcribe chest data to JSON, enable filtering and RNG integration.
+
+### Cast assistance for a target chest
+
+Given a target chest and its spawn/item probabilities, show which upcoming RNG position produces the desired outcome (e.g. 75%+ for a rare item) and how many casts are needed to burn to reach it. Depends on the Phase 2 data layer above.
