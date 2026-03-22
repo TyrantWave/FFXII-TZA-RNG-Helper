@@ -266,6 +266,62 @@ describe('WasmService', () => {
     });
   });
 
+  // ── elapsedSeconds ────────────────────────────────────────────────────────
+
+  describe('elapsedSeconds', () => {
+    type MockWorker = { postMessage: ReturnType<typeof vi.fn>; onmessage: ((e: { data: any }) => void) | null; terminate: ReturnType<typeof vi.fn> };
+    let mockWorkers: MockWorker[];
+
+    beforeEach(() => {
+      vi.useFakeTimers();
+      mockWorkers = [];
+      vi.stubGlobal('Worker', vi.fn(function () {
+        const w: MockWorker = { postMessage: vi.fn(), onmessage: null, terminate: vi.fn() };
+        mockWorkers.push(w);
+        return w;
+      }));
+      Object.defineProperty(navigator, 'hardwareConcurrency', { value: 4, configurable: true });
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+      vi.unstubAllGlobals();
+    });
+
+    it('starts at 0', () => {
+      expect(service.elapsedSeconds()).toBe(0);
+    });
+
+    it('increments each second while searching', () => {
+      service.findSeed(defaultCharacter, [2255], 0, 1000, 10);
+      vi.advanceTimersByTime(3000);
+      expect(service.elapsedSeconds()).toBe(3);
+    });
+
+    it('freezes when a seed is found', () => {
+      service.findSeed(defaultCharacter, [2255], 0, 1000, 10);
+      vi.advanceTimersByTime(2000);
+      mockWorkers[0].onmessage!({ data: { seed: 42 } });
+      vi.advanceTimersByTime(2000);
+      expect(service.elapsedSeconds()).toBe(2);
+    });
+
+    it('freezes when all workers return notfound', () => {
+      service.findSeed(defaultCharacter, [2255], 0, 1000, 10);
+      vi.advanceTimersByTime(2000);
+      mockWorkers.forEach(w => w.onmessage!({ data: { seed: null } }));
+      vi.advanceTimersByTime(2000);
+      expect(service.elapsedSeconds()).toBe(2);
+    });
+
+    it('resets to 0 when a new search starts', () => {
+      service.findSeed(defaultCharacter, [2255], 0, 1000, 10);
+      vi.advanceTimersByTime(3000);
+      service.findSeed(defaultCharacter, [2255], 0, 1000, 10);
+      expect(service.elapsedSeconds()).toBe(0);
+    });
+  });
+
   // ── findCasts ─────────────────────────────────────────────────────────────
 
   describe('findCasts', () => {

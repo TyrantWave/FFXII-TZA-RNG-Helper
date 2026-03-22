@@ -33,9 +33,12 @@ export class WasmService {
   readonly isReady = computed(() => this.initResource.status() === 'resolved');
 
   readonly searchStatus = signal<SearchStatus>('idle');
+  readonly elapsedSeconds = signal(0);
 
   private helper: RNGHelper | null = null;
   private workers: Worker[] = [];
+  private elapsedTimer: ReturnType<typeof setInterval> | null = null;
+  private searchStart = 0;
 
   private readonly _values = signal<ValueLens[]>([]);
   private readonly _seed = signal<number | null>(null);
@@ -76,6 +79,12 @@ export class WasmService {
   findSeed(character: Character, values: number[], min: number, max: number, iters: number): void {
     this.workers.forEach(w => w.terminate());
     this.workers = [];
+    if (this.elapsedTimer) clearInterval(this.elapsedTimer);
+    this.elapsedSeconds.set(0);
+    this.searchStart = Date.now();
+    this.elapsedTimer = setInterval(() => {
+      this.elapsedSeconds.set(Math.floor((Date.now() - this.searchStart) / 1000));
+    }, 1000);
     this.searchStatus.set('searching');
 
     const n = navigator.hardwareConcurrency ?? 4;
@@ -95,10 +104,14 @@ export class WasmService {
           won = true;
           this.workers.forEach(w => w.terminate());
           this.workers = [];
+          clearInterval(this.elapsedTimer!);
+          this.elapsedTimer = null;
           this.createHelper(data.seed, character, TABLE_SIZE);
           this.findCasts(character, values, DEFAULT_ITERS);
           this.searchStatus.set('found');
         } else if (pending === 0) {
+          clearInterval(this.elapsedTimer!);
+          this.elapsedTimer = null;
           this.searchStatus.set('notfound');
         }
       };
