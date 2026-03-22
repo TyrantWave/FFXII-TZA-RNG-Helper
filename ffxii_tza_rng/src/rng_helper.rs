@@ -22,24 +22,35 @@ pub struct RNGHelper {
     pub rng: rng::RNG,
 }
 
-/// Stack-only probe: returns true if `seed` produces `values` within `iters` steps.
-fn check_seed(seed: u32, character: &character::Character, values: &[i32], iters: usize) -> bool {
-    let len = values.len();
+/// Stack-only probe: returns true if `seed` produces targets within `iters` steps.
+///
+/// `targets` is a slice of `(lo, hi)` remainder ranges precomputed from the target heal values
+/// via `Character::remainder_range`. The window stores `rng_val % modulus` directly, avoiding
+/// all floating-point work in the hot path.
+fn check_seed(seed: u32, targets: &[(u32, u32)], modulus: u32, iters: usize) -> bool {
+    let len = targets.len();
     const MAX_WINDOW: usize = 16;
     debug_assert!(len <= MAX_WINDOW);
-    let mut window = [0i32; MAX_WINDOW];
+    let mut window = [0u32; MAX_WINDOW];
     let mut rng = rng::RNG::from(seed);
 
-    // Prime the window — mirrors RNGHelper::new(seed, character, len)
+    // Prime the window
     for slot in window.iter_mut().take(len) {
-        *slot = character.cast(rng.gen_rand());
+        *slot = rng.gen_rand() % modulus;
     }
 
-    // Advance then check — mirrors find_casts (next() before comparison)
+    // Advance then check
     for _ in 0..iters {
         window.copy_within(1..len, 0);
-        window[len - 1] = character.cast(rng.gen_rand());
-        if window[..len] == values[..] {
+        window[len - 1] = rng.gen_rand() % modulus;
+        let mut matched = true;
+        for (i, &(lo, hi)) in targets.iter().enumerate() {
+            if window[i] < lo || window[i] > hi {
+                matched = false;
+                break;
+            }
+        }
+        if matched {
             return true;
         }
     }
@@ -129,8 +140,13 @@ impl RNGHelper {
         iters: usize,
     ) -> Option<RNGHelper> {
         let len = values.len();
+        let targets: Vec<(u32, u32)> = values
+            .iter()
+            .map(|&h| character.remainder_range(h))
+            .collect();
+        let modulus = character.modulus;
         (min..max).find_map(|seed| {
-            check_seed(seed, character, values, iters).then(|| {
+            check_seed(seed, &targets, modulus, iters).then(|| {
                 let mut helper = RNGHelper::new(Some(seed), character, len);
                 helper.find_casts(character, values, Some(iters));
                 helper

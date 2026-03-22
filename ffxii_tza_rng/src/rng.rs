@@ -57,25 +57,31 @@ impl RNG {
         (y & 1).wrapping_neg() & RNG::MATRIX_A
     }
 
+    #[cold]
+    #[inline(never)]
+    fn twist(&mut self) {
+        let mut y;
+        let mut kk = 0;
+        while kk < (RNG::N - RNG::M) {
+            y = (self.mt[kk] & RNG::UPPER_MASK) | (self.mt[kk + 1] & RNG::LOWER_MASK);
+            self.mt[kk] = self.mt[kk + RNG::M] ^ (y >> 1) ^ RNG::mag(y);
+            kk += 1;
+        }
+        while kk < (RNG::N - 1) {
+            y = (self.mt[kk] & RNG::UPPER_MASK) | (self.mt[kk + 1] & RNG::LOWER_MASK);
+            self.mt[kk] = self.mt[kk - (RNG::N - RNG::M)] ^ (y >> 1) ^ RNG::mag(y);
+            kk += 1;
+        }
+        y = (self.mt[RNG::N - 1] & RNG::UPPER_MASK) | (self.mt[0] & RNG::LOWER_MASK);
+        self.mt[RNG::N - 1] = self.mt[RNG::M - 1] ^ (y >> 1) ^ RNG::mag(y);
+        self.mti = 0;
+    }
+
     pub fn gen_rand(&mut self) -> u32 {
         let mut y;
 
         if self.mti >= RNG::N {
-            let mut kk = 0;
-            while kk < (RNG::N - RNG::M) {
-                y = (self.mt[kk] & RNG::UPPER_MASK) | (self.mt[kk + 1] & RNG::LOWER_MASK);
-                self.mt[kk] = self.mt[kk + RNG::M] ^ (y >> 1) ^ RNG::mag(y);
-                kk += 1;
-            }
-            while kk < (RNG::N - 1) {
-                y = (self.mt[kk] & RNG::UPPER_MASK) | (self.mt[kk + 1] & RNG::LOWER_MASK);
-                self.mt[kk] = self.mt[kk - (RNG::N - RNG::M)] ^ (y >> 1) ^ RNG::mag(y);
-                kk += 1;
-            }
-            y = (self.mt[RNG::N - 1] & RNG::UPPER_MASK) | (self.mt[0] & RNG::LOWER_MASK);
-            self.mt[RNG::N - 1] = self.mt[RNG::M - 1] ^ (y >> 1) ^ RNG::mag(y);
-
-            self.mti = 0;
+            self.twist();
         }
 
         y = self.mt[self.mti];
