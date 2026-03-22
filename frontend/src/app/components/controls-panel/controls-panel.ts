@@ -1,4 +1,4 @@
-import { Component, input, model, output, signal } from '@angular/core';
+import { Component, effect, input, model, output, signal } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -16,12 +16,23 @@ const VALUE_COUNT = 5;
 export class ControlsPanel {
   readonly searchStatus = input<SearchStatus>('idle');
   readonly browseSeed = model(DEFAULT_SEED);
+  readonly initialValues = input<number[]>([]);
 
   readonly findSeed = output<{ values: number[] }>();
   readonly findPosition = output<{ values: number[] }>();
 
   readonly observedValues = signal<(number | null)[]>(Array(VALUE_COUNT).fill(null));
   readonly indices = Array.from({ length: VALUE_COUNT }, (_, i) => i);
+
+  constructor() {
+    effect(() => {
+      const init = this.initialValues();
+      if (!init.length) return;
+      const padded: (number | null)[] = Array(VALUE_COUNT).fill(null);
+      init.forEach((v, i) => { if (i < VALUE_COUNT) padded[i] = v; });
+      this.observedValues.set(padded);
+    });
+  }
 
   readonly statusLabel: Record<SearchStatus, string> = {
     idle: '',

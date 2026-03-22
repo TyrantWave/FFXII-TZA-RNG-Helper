@@ -5,6 +5,7 @@ import { DEFAULT_CHARACTER, CharacterPanel } from './components/character-panel/
 import { ControlsPanel } from './components/controls-panel/controls-panel';
 import { ValuesTable } from './components/values-table/values-table';
 
+
 @Component({
   selector: 'tza-root',
   imports: [MatDividerModule, CharacterPanel, ControlsPanel, ValuesTable],
@@ -16,11 +17,15 @@ export class App {
 
   readonly character = signal<Character>(DEFAULT_CHARACTER);
   readonly browseSeed = signal(DEFAULT_SEED);
+  readonly initialHeals = this.parseHeals();
 
   constructor() {
     effect(() => {
       if (!this.wasm.isReady()) return;
       this.wasm.createHelper(DEFAULT_SEED, this.character(), TABLE_SIZE);
+      if (this.initialHeals.length) {
+        this.wasm.findSeed(this.character(), this.initialHeals, DEFAULT_MIN, DEFAULT_MAX, DEFAULT_ITERS);
+      }
     });
     effect(() => {
       if (this.wasm.searchStatus() !== 'found') return;
@@ -41,4 +46,10 @@ export class App {
     this.wasm.createHelper(this.browseSeed(), this.character(), TABLE_SIZE);
     this.wasm.findCasts(this.character(), values, DEFAULT_ITERS);
   }
+
+  private parseHeals(): number[] {
+    const raw = new URLSearchParams(window.location.search).get('heals') ?? '';
+    return raw ? raw.split(',').map(Number).filter(n => !isNaN(n)) : [];
+  }
+
 }
