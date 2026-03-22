@@ -1,13 +1,12 @@
 /// <reference lib="webworker" />
 
-import init, { initThreadPool, RNGHelper } from 'ffxii-tza-rng-wasm';
+import init, { RNGHelper } from 'ffxii-tza-rng-wasm';
 import type { Character, ValueLens } from '../app/services/wasm.service';
 
 const WASM_URL = '/wasm/ffxii_tza_rng_wasm_bg.wasm';
 
 async function setup(): Promise<void> {
   await init(WASM_URL);
-  await initThreadPool(navigator.hardwareConcurrency);
 }
 
 const ready = setup();

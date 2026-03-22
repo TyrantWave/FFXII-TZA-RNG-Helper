@@ -1,4 +1,4 @@
-import { Component, input, output, signal } from '@angular/core';
+import { Component, input, model, output, signal } from '@angular/core';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -9,9 +9,9 @@ import { DEFAULT_SEED, type SearchStatus } from '../../services/wasm.service';
 export type Mode = 'browse' | 'findSeed' | 'findPosition';
 
 const OBSERVED_COUNT = 5;
-const DEFAULT_MIN = 0;
+const DEFAULT_MIN = 6_000_000;
 const DEFAULT_MAX = 16_777_216;
-const DEFAULT_ITERS = 100;
+const DEFAULT_ITERS = 500;
 
 @Component({
   selector: 'tza-controls-panel',
@@ -29,7 +29,7 @@ export class ControlsPanel {
   readonly findPosition = output<{ seed: number; values: number[] }>();
 
   // Browse state
-  readonly browseSeed = signal(DEFAULT_SEED);
+  readonly browseSeed = model(DEFAULT_SEED);
 
   // Find seed state
   readonly observedValues = signal<(number | null)[]>(Array(OBSERVED_COUNT).fill(null));

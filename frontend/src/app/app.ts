@@ -16,11 +16,17 @@ export class App {
 
   readonly character = signal<Character>(DEFAULT_CHARACTER);
   readonly mode = signal<Mode>('browse');
+  readonly browseSeed = signal(DEFAULT_SEED);
 
   constructor() {
     effect(() => {
       if (!this.wasm.isReady()) return;
       this.wasm.createHelper(DEFAULT_SEED, this.character(), TABLE_SIZE);
+    });
+    effect(() => {
+      if (this.wasm.searchStatus() !== 'found') return;
+      this.browseSeed.set(this.wasm.seed() ?? DEFAULT_SEED);
+      this.mode.set('browse');
     });
   }
 

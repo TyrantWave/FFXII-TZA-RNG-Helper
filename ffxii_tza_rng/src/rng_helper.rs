@@ -1,4 +1,3 @@
-use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::{character, rng};
@@ -104,18 +103,11 @@ impl RNGHelper {
         max: u32,
         iters: usize,
     ) -> Option<RNGHelper> {
-        let seeds = min..max;
         let len = values.len();
-        seeds
-            .into_par_iter()
-            .flat_map(|seed| {
-                let mut helper = RNGHelper::new(Some(seed), character, len);
-                if helper.find_casts(character, values, Some(iters)) {
-                    return Some(helper);
-                };
-                None
-            })
-            .find_any(|_| true) // find_any
+        (min..max).find_map(|seed| {
+            let mut helper = RNGHelper::new(Some(seed), character, len);
+            helper.find_casts(character, values, Some(iters)).then_some(helper)
+        })
     }
 }
 
