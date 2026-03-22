@@ -1,6 +1,14 @@
 # FFXII TZA RNG Helper
 
+[![CI](https://github.com/TyrantWave/FFXII-TZA-RNG-Helper/actions/workflows/ci.yml/badge.svg)](https://github.com/TyrantWave/FFXII-TZA-RNG-Helper/actions/workflows/ci.yml)
+
 A tool for tracking and predicting the RNG state in *Final Fantasy XII: The Zodiac Age*. Enter observed cure values to find your current seed and position in the RNG sequence, then see upcoming values to plan your actions.
+
+---
+
+## Screenshot
+
+![App screenshot](docs/screenshot.png)
 
 ---
 
@@ -35,7 +43,9 @@ Enter your character stats in the left panel (level, magic, spell, serenity), th
 - **Find Seed** — searches the seed space using your observed heals, then automatically finds your position and loads the table to that point.
 - **Find Position** — if you already know the seed, finds where your observed heals appear within it and loads the table to that point.
 
-The values table shows the next 100 RNG draws as heal amounts and chest percentages, so you can plan ahead.
+After a successful search, the matched rows are highlighted and the table scrolls to your current position — the first row you haven't cast yet is marked green (next).
+
+**Click any row** to mark it as the last heal you cast. The clicked row fades (past), the row below turns green (next), and the buffer automatically extends so there are always 100 rows ahead to plan with. Clicking a past row moves the marker back — useful if you miscounted.
 
 > **For best results:** cast in an area with no NPCs loaded, and with no active status effects that trigger automatically (Regen, Poison, etc.). NPC movement consumes RNG draws; player movement does not. Multiple party members are fine — Cura and Curaja heal the whole party, giving more numbers per cast — but note the order the individual heals appear on screen and enter them in that order.
 
@@ -74,10 +84,13 @@ cargo build -p ffxii_tza_rng --release
 ./target/release/ffxii_tza_rng find-position 6357987 70 99 Cure 2255 2063 2029 2211 2195
 ```
 
+The first lookahead row (your next cast) is highlighted in green in a terminal.
+
 Output (both modes):
 ```
 Seed:     6357987
 Position: 7
+Elapsed:  7s
 
 Matched + next 5 values:
   pos     3  cure=2255    chest=82%
@@ -85,7 +98,7 @@ Matched + next 5 values:
   pos     5  cure=2029    chest= 9%
   pos     6  cure=2211    chest=39%
   pos     7  cure=2195    chest=73%
-  pos     8  cure=2131    chest=10%
+  pos     8  cure=2131    chest=10%   # next cast — printed in green
   pos     9  cure=2233    chest=61%
   pos    10  cure=2079    chest=58%
   pos    11  cure=2264    chest=91%
@@ -165,7 +178,9 @@ cd frontend && ng test --no-watch
 
 These seed + value combinations have been confirmed against real gameplay on Nintendo Switch:
 
-| Seed | Character | Values (consecutive Cure heals) |
-|------|-----------|----------------------------------|
+| Seed | Character | Values (consecutive heals) |
+|------|-----------|--------------------------|
 | 6,357,987 | lvl 70, mag 99, Cure, Serenity | 2255, 2063, 2029, 2211, 2195 |
 | 6,541,629 | lvl 70, mag 99, Cure, Serenity | 2071, 2134, 2220, 2062, 2086 |
+| 8,018,931 | lvl 70, mag 54, Curaja, no Serenity | 3794, 3582, 3622, 3628, 3648 |
+| 7,849,347 | lvl 45, mag 68, Cura, Serenity | 2243, 2339, 2462, 2286, 2362 |
