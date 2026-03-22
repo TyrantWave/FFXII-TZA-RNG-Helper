@@ -1,9 +1,9 @@
-use serde::{Deserialize, Serialize};
+const N: usize = 624;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug)]
 pub struct RNG {
     // array for the state vector
-    mt: Vec<u32>,
+    mt: [u32; N],
     // mti == N+1 means mt isn't initialised
     mti: usize,
     // position in the RNG
@@ -31,7 +31,7 @@ impl RNG {
 
     /// Initialise an RNG (mt[N]) with a given seed
     fn sgenrand(seed: u32) -> RNG {
-        let mut mt = vec![0; RNG::N];
+        let mut mt = [0u32; RNG::N];
         mt[0] = seed;
         let mut mti = 1;
         while mti < RNG::N {

@@ -1,10 +1,10 @@
 use std::collections::VecDeque;
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use crate::{character, rng};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Debug)]
 pub struct ValueLens {
     pub position: u32,
     pub value: u32,
@@ -16,10 +16,34 @@ pub struct ValueLens {
 /// and can output them as `Spell` values or chest chances
 ///
 /// Additionally, can locate the next set of matched `Spell` values in the given rng
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug)]
 pub struct RNGHelper {
     pub values: VecDeque<ValueLens>,
     pub rng: rng::RNG,
+}
+
+/// Stack-only probe: returns true if `seed` produces `values` within `iters` steps.
+fn check_seed(seed: u32, character: &character::Character, values: &[i32], iters: usize) -> bool {
+    let len = values.len();
+    const MAX_WINDOW: usize = 16;
+    debug_assert!(len <= MAX_WINDOW);
+    let mut window = [0i32; MAX_WINDOW];
+    let mut rng = rng::RNG::from(seed);
+
+    // Prime the window — mirrors RNGHelper::new(seed, character, len)
+    for slot in window.iter_mut().take(len) {
+        *slot = character.cast(rng.gen_rand());
+    }
+
+    // Advance then check — mirrors find_casts (next() before comparison)
+    for _ in 0..iters {
+        window.copy_within(1..len, 0);
+        window[len - 1] = character.cast(rng.gen_rand());
+        if window[..len] == values[..] {
+            return true;
+        }
+    }
+    false
 }
 
 impl RNGHelper {
@@ -97,7 +121,6 @@ impl RNGHelper {
     }
 
     /// Given a character and set of cure values, try to find a seed that matches
-    /// This may be super slow
     pub fn find_seed(
         character: &character::Character,
         values: &[i32],
@@ -107,8 +130,11 @@ impl RNGHelper {
     ) -> Option<RNGHelper> {
         let len = values.len();
         (min..max).find_map(|seed| {
-            let mut helper = RNGHelper::new(Some(seed), character, len);
-            helper.find_casts(character, values, Some(iters)).then_some(helper)
+            check_seed(seed, character, values, iters).then(|| {
+                let mut helper = RNGHelper::new(Some(seed), character, len);
+                helper.find_casts(character, values, Some(iters));
+                helper
+            })
         })
     }
 }
