@@ -1,10 +1,15 @@
 use ffxii_tza_rng::{character, rng_helper, spell};
+use std::io::Write;
 use std::str::FromStr;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
 const MIN: u32 = 6_000_000;
 const MAX: u32 = 16_777_216;
 const ITERS: usize = 500;
 const TRAILING: usize = 5;
+const GREEN: &str = "\x1b[32m";
+const RESET: &str = "\x1b[0m";
 
 fn usage(bin: &str) -> ! {
     eprintln!("Usage:");
@@ -37,9 +42,11 @@ fn print_results(
     helper: &mut rng_helper::RNGHelper,
     character: &character::Character,
     spell_label: &str,
+    elapsed: u64,
 ) {
     println!("Seed:     {}", helper.rng.seed);
     println!("Position: {}", helper.rng.position);
+    println!("Elapsed:  {}s", elapsed);
     println!();
     println!("Matched + next {TRAILING} values:");
     for v in helper.values.iter() {
@@ -48,7 +55,15 @@ fn print_results(
             v.position, v.spell, v.chest
         );
     }
-    for _ in 0..TRAILING {
+    // Row immediately after the match — the one the user needs to cast next
+    helper.push(character);
+    let v = helper.values.back().unwrap();
+    println!(
+        "{GREEN}  pos {:>5}  {spell_label}={:<6}  chest={:>2}%{RESET}",
+        v.position, v.spell, v.chest
+    );
+    // Remaining lookahead rows
+    for _ in 1..TRAILING {
         helper.push(character);
         let v = helper.values.back().unwrap();
         println!(
@@ -94,9 +109,25 @@ fn cmd_find_seed(args: &[String]) {
         MIN, MAX, n, ITERS
     );
 
-    match rng_helper::RNGHelper::find_seed_parallel(&character, &values, MIN, MAX, ITERS) {
-        None => eprintln!("No seed found in range {}..{}", MIN, MAX),
-        Some(mut helper) => print_results(&mut helper, &character, &spell_label),
+    let start = std::time::Instant::now();
+    let done = Arc::new(AtomicBool::new(false));
+    let done_clone = Arc::clone(&done);
+    std::thread::spawn(move || {
+        while !done_clone.load(Ordering::Relaxed) {
+            print!("\r  Elapsed: {}s", start.elapsed().as_secs());
+            std::io::stdout().flush().unwrap();
+            std::thread::sleep(std::time::Duration::from_secs(1));
+        }
+    });
+
+    let result = rng_helper::RNGHelper::find_seed_parallel(&character, &values, MIN, MAX, ITERS);
+    let elapsed = start.elapsed().as_secs();
+    done.store(true, Ordering::Relaxed);
+    print!("\r                    \r"); // clear the elapsed line
+
+    match result {
+        None => eprintln!("No seed found in range {}..{} ({}s)", MIN, MAX, elapsed),
+        Some(mut helper) => print_results(&mut helper, &character, &spell_label, elapsed),
     }
 }
 
@@ -134,11 +165,17 @@ fn cmd_find_position(args: &[String]) {
     let character = character::Character::new(level, magic, sp, serenity);
     let len = values.len();
 
+    let start = std::time::Instant::now();
     let mut helper = rng_helper::RNGHelper::new(Some(seed), &character, len);
-    if helper.find_casts(&character, &values, None) {
-        print_results(&mut helper, &character, &spell_label);
+    let found = helper.find_casts(&character, &values, None);
+    let elapsed = start.elapsed().as_secs();
+    if found {
+        print_results(&mut helper, &character, &spell_label, elapsed);
     } else {
-        eprintln!("Position not found in seed {seed} within the search limit");
+        eprintln!(
+            "Position not found in seed {seed} within the search limit ({}s)",
+            elapsed
+        );
     }
 }
 
