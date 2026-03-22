@@ -8,7 +8,8 @@
 | 2 | WASM bindings | ✅ Done |
 | 3 | Angular frontend | ✅ Done |
 | 4 | Real-game validation & test coverage | ✅ Done |
-| 5 | Optimisation | 🔄 In progress |
+| 5 | Optimisation | ✅ Done |
+| 6 | UX feedback improvements | 🔲 Not started |
 
 ---
 
@@ -121,7 +122,7 @@ Validated against live Nintendo Switch gameplay. Formula and seed search confirm
 
 ---
 
-## Stage 5 — Optimisation 🔄
+## Stage 5 — Optimisation ✅
 
 ### Rust hot path (done)
 
@@ -142,6 +143,32 @@ Combined: **~30% faster seed search** single-threaded. Extrapolated: full 10M Sw
 - [ ] JS-layer parallelism: split `min..max` into N chunks, spawn N workers, first match wins
 - [ ] SIMD via `wide` crate (if parallelism alone is insufficient)
 - [ ] Smarter search bounds (collect more boot seeds to validate/tighten the 6M floor)
+
+---
+
+## Stage 6 — UX Feedback Improvements 🔲
+
+### CLI: elapsed timer
+
+Background thread prints `  Elapsed: Xs` in-place (`\r`) every second while `find_seed_parallel` runs. Cleared when done, results print normally. No new dependencies.
+
+### Web app: status card
+
+Replace inline status text with a styled card below the buttons:
+
+- **Searching**: indeterminate Material progress bar + "Searching… Xs" (elapsed ticks every second)
+- **Found**: ✓ Found — seed N, position N, took Xs
+- **Not found**: ✗ Not found (took Xs) + "Try different heal values"
+
+`WasmService` gains `elapsedSeconds` signal (`setInterval`, cleared on resolve). `ControlsPanel` gains `elapsedSeconds` and `position` inputs to drive the card.
+
+### Web app: table highlight + scroll
+
+After a successful search, highlight matched rows (match start → match end) with a distinct background and auto-scroll the viewport to the first matched row.
+
+`App` derives `highlightRange` from `wasm.position()` and a new `lastSearchCount` signal (set when find-seed/find-position is triggered). `ValuesTable` gains `highlightRange` and `scrollToPosition` inputs; scroll via `CdkVirtualScrollViewport.scrollToIndex()`.
+
+TDD throughout (fake timers for elapsed, state tests for card, viewport mock for scroll).
 
 ---
 
