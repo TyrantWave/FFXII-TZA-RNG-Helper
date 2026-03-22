@@ -8,7 +8,7 @@
 | 2 | WASM bindings | ✅ Done |
 | 3 | Angular frontend | ✅ Done |
 | 4 | Real-game validation & test coverage | ✅ Done |
-| 5 | Optimisation | 🔲 Not started |
+| 5 | Optimisation | 🔄 In progress |
 
 ---
 
@@ -121,15 +121,35 @@ Validated against live Nintendo Switch gameplay. Formula and seed search confirm
 
 ---
 
-## Stage 5 — Optimisation 🔲
+## Stage 5 — Optimisation 🔄
 
-Only after Stages 1–4 are solid.
+### Rust hot path (done)
+
+Criterion benchmarks added (`benches/rng.rs`) covering all layers: raw MT19937, cast formula, `RNGHelper` construction, `find_casts`, `find_seed` over 1k/10k seed windows.
+
+Optimisations landed and measured (baseline → after, `find_seed/10k_no_match`):
+
+| Change | Delta |
+|--------|-------|
+| `Vec<ValueLens>` → `VecDeque` (O(1) pop_front) | −6% |
+| `mt: Vec<u32>` → `mt: [u32; 624]` (stack-allocated MT state) | −30% |
+| `check_seed` stack-only probe (no heap per rejected seed) | included above |
+
+Combined: **~30% faster seed search** single-threaded. Extrapolated: full 10M Switch search ~77 s → down from ~109 s.
+
+### Next
 
 - [ ] JS-layer parallelism: split `min..max` into N chunks, spawn N workers, first match wins
-- [ ] Profile single-threaded WASM throughput and identify bottlenecks
-- [ ] Candidates: tighter inner loop, SIMD via `wide` crate, smarter search bounds
+- [ ] SIMD via `wide` crate (if parallelism alone is insufficient)
+- [ ] Smarter search bounds (collect more boot seeds to validate/tighten the 6M floor)
 
 ---
+
+## Post-Stage-4 additions
+
+- [x] CLI subcommands: `find-seed <level> <magic> <spell> [--no-serenity] <vals...>` and `find-position <seed> <level> <magic> <spell> [--no-serenity] <vals...>`
+- [x] CLI output includes chest % alongside heal values
+- [x] URL query param: `?heals=val1,val2,...` — pre-fills inputs and auto-triggers find-seed on load
 
 ## Ideas Backlog
 

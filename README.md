@@ -39,36 +39,60 @@ The values table shows the next 100 RNG draws as heal amounts and chest percenta
 
 > **For best results:** cast in an area with no NPCs loaded, and with no active status effects that trigger automatically (Regen, Poison, etc.). NPC movement consumes RNG draws; player movement does not. Multiple party members are fine — Cura and Curaja heal the whole party, giving more numbers per cast — but note the order the individual heals appear on screen and enter them in that order.
 
+### Web app — URL shortcut
+
+Append `?heals=val1,val2,...` to the URL to pre-fill the heal inputs and kick off a seed search automatically on load. Useful for bookmarking a known test case:
+
+```
+http://localhost:4200/?heals=2255,2063,2029,2211,2195
+```
+
 ### CLI
 
-A command-line tool is included for quick testing and verification.
+A command-line tool is included for quick testing and verification. It supports both modes and all spell/stat configurations.
 
 ```bash
 cargo build -p ffxii_tza_rng --release
-
-# Usage: ffxii_tza_rng <level> <magic> <heal1> [heal2 ...]
-./target/release/ffxii_tza_rng 70 99 2255 2063 2029 2211 2195
 ```
 
-Output:
+**Find seed** — searches the full seed space for the given observed heals:
+
+```bash
+./target/release/ffxii_tza_rng find-seed <level> <magic> <spell> [--no-serenity] <val1> [val2 ...]
+
+# Examples
+./target/release/ffxii_tza_rng find-seed 70 99 Cure 2255 2063 2029 2211 2195
+./target/release/ffxii_tza_rng find-seed 70 54 Curaja --no-serenity 3794 3582 3622 3628 3648
+```
+
+**Find position** — if you already know the seed, locates where a sequence of heals falls within it:
+
+```bash
+./target/release/ffxii_tza_rng find-position <seed> <level> <magic> <spell> [--no-serenity] <val1> [val2 ...]
+
+# Example
+./target/release/ffxii_tza_rng find-position 6357987 70 99 Cure 2255 2063 2029 2211 2195
+```
+
+Output (both modes):
 ```
 Seed:     6357987
 Position: 7
 
 Matched + next 5 values:
-  pos    3  cure=2255
-  pos    4  cure=2063
-  pos    5  cure=2029
-  pos    6  cure=2211
-  pos    7  cure=2195
-  pos    8  cure=2131
-  pos    9  cure=2233
-  pos   10  cure=2079
-  pos   11  cure=2264
-  pos   12  cure=2177
+  pos     3  cure=2255    chest=82%
+  pos     4  cure=2063    chest=42%
+  pos     5  cure=2029    chest= 9%
+  pos     6  cure=2211    chest=39%
+  pos     7  cure=2195    chest=73%
+  pos     8  cure=2131    chest=10%
+  pos     9  cure=2233    chest=61%
+  pos    10  cure=2079    chest=58%
+  pos    11  cure=2264    chest=91%
+  pos    12  cure=2177    chest=55%
 ```
 
-The CLI assumes Cure and Serenity on. For other spell/stat configurations use the web app.
+Spell options: `Cure`, `Cura`, `Curaga`, `Curaja`. Serenity is on by default; pass `--no-serenity` to disable it.
 
 ---
 
