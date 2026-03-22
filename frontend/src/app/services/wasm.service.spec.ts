@@ -168,11 +168,18 @@ describe('WasmService', () => {
   // ── findSeed ──────────────────────────────────────────────────────────────
 
   describe('findSeed', () => {
-    let mockWorker: { postMessage: ReturnType<typeof vi.fn>; onmessage: ((e: { data: any }) => void) | null };
+    type MockWorker = { postMessage: ReturnType<typeof vi.fn>; onmessage: ((e: { data: any }) => void) | null; terminate: ReturnType<typeof vi.fn> };
+    let mockWorkers: MockWorker[];
 
     beforeEach(() => {
-      mockWorker = { postMessage: vi.fn(), onmessage: null };
-      vi.stubGlobal('Worker', vi.fn(function () { return mockWorker; }));
+      mockWorkers = [];
+      vi.stubGlobal('Worker', vi.fn(function () {
+        const w: MockWorker = { postMessage: vi.fn(), onmessage: null, terminate: vi.fn() };
+        mockWorkers.push(w);
+        return w;
+      }));
+      // Fix hardwareConcurrency so tests are deterministic regardless of host machine
+      Object.defineProperty(navigator, 'hardwareConcurrency', { value: 4, configurable: true });
     });
 
     afterEach(() => {
@@ -184,45 +191,78 @@ describe('WasmService', () => {
     });
 
     it('sets searchStatus to searching when called', () => {
-      service.findSeed(defaultCharacter, [2255, 2063], 0, 100, 10);
+      service.findSeed(defaultCharacter, [2255, 2063], 0, 1000, 10);
       expect(service.searchStatus()).toBe('searching');
     });
 
-    it('posts findSeed message to the worker', () => {
-      service.findSeed(defaultCharacter, [2255, 2063], 6_000_000, 6_500_000, 1000);
-      expect(mockWorker.postMessage).toHaveBeenCalledWith({
-        type: 'findSeed',
-        character: defaultCharacter,
-        values: [2255, 2063],
-        min: 6_000_000,
-        max: 6_500_000,
-        iters: 1000,
+    it('spawns one worker per logical CPU', () => {
+      service.findSeed(defaultCharacter, [2255], 0, 1000, 10);
+      expect(Worker).toHaveBeenCalledTimes(4);
+    });
+
+    it('partitions the range evenly across workers', () => {
+      service.findSeed(defaultCharacter, [2255], 0, 1000, 10);
+      const msgs = mockWorkers.map(w => w.postMessage.mock.calls[0][0]);
+      expect(msgs[0]).toMatchObject({ min: 0, max: 250 });
+      expect(msgs[1]).toMatchObject({ min: 250, max: 500 });
+      expect(msgs[2]).toMatchObject({ min: 500, max: 750 });
+      expect(msgs[3]).toMatchObject({ min: 750, max: 1000 });
+    });
+
+    it('includes character, values and iters in each worker message', () => {
+      service.findSeed(defaultCharacter, [2255, 2063], 0, 1000, 42);
+      mockWorkers.forEach(w => {
+        expect(w.postMessage).toHaveBeenCalledWith(expect.objectContaining({
+          type: 'findSeed',
+          character: defaultCharacter,
+          values: [2255, 2063],
+          iters: 42,
+        }));
       });
     });
 
-    it('creates the worker lazily and reuses it', () => {
-      service.findSeed(defaultCharacter, [2255], 0, 100, 10);
-      service.findSeed(defaultCharacter, [2255], 0, 100, 10);
-      expect(Worker).toHaveBeenCalledTimes(1);
+    it('sets searchStatus to found when any worker returns a seed', () => {
+      service.findSeed(defaultCharacter, [2255, 2063], 0, 1000, 10);
+      mockWorkers[1].onmessage!({ data: { type: 'result', seed: 6_357_987, values: [] } });
+      expect(service.searchStatus()).toBe('found');
     });
 
-    it('sets searchStatus to found and populates helper when seed is returned', () => {
-      service.findSeed(defaultCharacter, [2255, 2063], 0, 100, 10);
-      mockWorker.onmessage!({ data: { type: 'result', seed: 6_357_987, values: mockHelper.values() } });
-      expect(service.searchStatus()).toBe('found');
+    it('populates helper with the found seed', () => {
+      service.findSeed(defaultCharacter, [2255, 2063], 0, 1000, 10);
+      mockWorkers[2].onmessage!({ data: { type: 'result', seed: 6_357_987, values: [] } });
+      expect(MockRNGHelper).toHaveBeenCalledWith(6_357_987, defaultCharacter, expect.any(Number));
       expect(service.seed()).toBe(4537); // from mockHelper.seed()
     });
 
-    it('sets searchStatus to notfound when seed is null', () => {
-      service.findSeed(defaultCharacter, [2255, 2063], 0, 100, 10);
-      mockWorker.onmessage!({ data: { type: 'result', seed: null, values: null } });
+    it('terminates all workers when any worker finds a result', () => {
+      service.findSeed(defaultCharacter, [2255], 0, 1000, 10);
+      mockWorkers[1].onmessage!({ data: { type: 'result', seed: 42, values: [] } });
+      mockWorkers.forEach(w => expect(w.terminate).toHaveBeenCalled());
+    });
+
+    it('stays searching until all workers have responded', () => {
+      service.findSeed(defaultCharacter, [2255], 0, 1000, 10);
+      mockWorkers.slice(0, 3).forEach(w => w.onmessage!({ data: { type: 'result', seed: null, values: null } }));
+      expect(service.searchStatus()).toBe('searching');
+    });
+
+    it('sets searchStatus to notfound only when all workers return null', () => {
+      service.findSeed(defaultCharacter, [2255], 0, 1000, 10);
+      mockWorkers.forEach(w => w.onmessage!({ data: { type: 'result', seed: null, values: null } }));
       expect(service.searchStatus()).toBe('notfound');
     });
 
-    it('calls createHelper with found seed', () => {
-      service.findSeed(defaultCharacter, [2255, 2063], 0, 100, 10);
-      mockWorker.onmessage!({ data: { type: 'result', seed: 6_357_987, values: [] } });
-      expect(MockRNGHelper).toHaveBeenCalledWith(6_357_987, defaultCharacter, expect.any(Number));
+    it('terminates previous workers when a new search starts', () => {
+      service.findSeed(defaultCharacter, [2255], 0, 1000, 10);
+      const firstBatch = [...mockWorkers];
+      service.findSeed(defaultCharacter, [2255], 0, 1000, 10);
+      firstBatch.forEach(w => expect(w.terminate).toHaveBeenCalled());
+    });
+
+    it('spawns a fresh set of workers for each search', () => {
+      service.findSeed(defaultCharacter, [2255], 0, 1000, 10);
+      service.findSeed(defaultCharacter, [2255], 0, 1000, 10);
+      expect(Worker).toHaveBeenCalledTimes(8); // 4 per call
     });
   });
 

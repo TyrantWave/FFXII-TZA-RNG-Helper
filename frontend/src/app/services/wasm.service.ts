@@ -35,7 +35,7 @@ export class WasmService {
   readonly searchStatus = signal<SearchStatus>('idle');
 
   private helper: RNGHelper | null = null;
-  private worker: Worker | null = null;
+  private workers: Worker[] = [];
 
   private readonly _values = signal<ValueLens[]>([]);
   private readonly _seed = signal<number | null>(null);
@@ -74,21 +74,35 @@ export class WasmService {
   }
 
   findSeed(character: Character, values: number[], min: number, max: number, iters: number): void {
-    if (!this.worker) {
-      this.worker = new Worker(new URL('../../workers/rng.worker', import.meta.url), { type: 'module' });
-    }
-    this.worker.onmessage = ({ data }) => this.handleWorkerResult(data, character, values);
+    this.workers.forEach(w => w.terminate());
+    this.workers = [];
     this.searchStatus.set('searching');
-    this.worker.postMessage({ type: 'findSeed', character, values, min, max, iters });
-  }
 
-  private handleWorkerResult(data: { seed: number | null }, character: Character, values: number[]): void {
-    if (data.seed !== null) {
-      this.createHelper(data.seed, character, TABLE_SIZE);
-      this.findCasts(character, values, DEFAULT_ITERS);
-      this.searchStatus.set('found');
-    } else {
-      this.searchStatus.set('notfound');
+    const n = navigator.hardwareConcurrency ?? 4;
+    const chunk = Math.ceil((max - min) / n);
+    let pending = n;
+    let won = false;
+
+    for (let i = 0; i < n; i++) {
+      const wMin = min + i * chunk;
+      const wMax = Math.min(wMin + chunk, max);
+      const w = new Worker(new URL('../../workers/rng.worker', import.meta.url), { type: 'module' });
+      this.workers.push(w);
+      w.onmessage = ({ data }) => {
+        if (won) return;
+        pending--;
+        if (data.seed !== null) {
+          won = true;
+          this.workers.forEach(w => w.terminate());
+          this.workers = [];
+          this.createHelper(data.seed, character, TABLE_SIZE);
+          this.findCasts(character, values, DEFAULT_ITERS);
+          this.searchStatus.set('found');
+        } else if (pending === 0) {
+          this.searchStatus.set('notfound');
+        }
+      };
+      w.postMessage({ type: 'findSeed', character, values, min: wMin, max: wMax, iters });
     }
   }
 
