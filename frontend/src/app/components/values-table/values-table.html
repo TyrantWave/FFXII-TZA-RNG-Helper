@@ -8,6 +8,7 @@
     <div
       *cdkVirtualFor="let row of values()"
       class="table-row"
+      [class.highlighted]="isHighlighted(row.position)"
       data-testid="values-row"
     >
       <span class="col-position">{{ row.position }}</span>

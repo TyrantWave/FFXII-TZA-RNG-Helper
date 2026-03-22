@@ -8,6 +8,7 @@ const mockWasm = {
   isReady: vi.fn(() => false),
   status: vi.fn(() => 'loading'),
   searchStatus: vi.fn(() => 'idle' as const),
+  elapsedSeconds: vi.fn(() => 0),
   values: vi.fn(() => []),
   seed: vi.fn(() => null),
   position: vi.fn(() => 0),

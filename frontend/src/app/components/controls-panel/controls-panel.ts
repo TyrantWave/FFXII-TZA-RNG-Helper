@@ -2,6 +2,7 @@ import { Component, effect, input, model, output, signal } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { FormsModule } from '@angular/forms';
 import { DEFAULT_SEED, type SearchStatus } from '../../services/wasm.service';
 
@@ -9,12 +10,14 @@ const VALUE_COUNT = 5;
 
 @Component({
   selector: 'tza-controls-panel',
-  imports: [MatFormFieldModule, MatInputModule, MatButtonModule, FormsModule],
+  imports: [MatFormFieldModule, MatInputModule, MatButtonModule, MatProgressBarModule, FormsModule],
   templateUrl: './controls-panel.html',
   styleUrl: './controls-panel.scss',
 })
 export class ControlsPanel {
   readonly searchStatus = input<SearchStatus>('idle');
+  readonly elapsedSeconds = input(0);
+  readonly position = input(0);
   readonly browseSeed = model(DEFAULT_SEED);
   readonly initialValues = input<number[]>([]);
 
@@ -33,13 +36,6 @@ export class ControlsPanel {
       this.observedValues.set(padded);
     });
   }
-
-  readonly statusLabel: Record<SearchStatus, string> = {
-    idle: '',
-    searching: 'Searching…',
-    found: 'Found',
-    notfound: 'Not found',
-  };
 
   setValue(index: number, raw: string): void {
     const n = raw === '' ? null : parseInt(raw, 10);

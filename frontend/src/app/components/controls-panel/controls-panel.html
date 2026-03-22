@@ -28,8 +28,24 @@
   <div class="action-row">
     <button mat-flat-button (click)="onFindSeed()" data-testid="find-seed-btn">Find Seed</button>
     <button mat-flat-button (click)="onFindPosition()" data-testid="find-position-btn">Find Position</button>
-    @if (searchStatus() !== 'idle') {
-      <span class="status-label" data-testid="search-status">{{ statusLabel[searchStatus()] }}</span>
-    }
   </div>
+
+  @if (searchStatus() !== 'idle') {
+    <div class="status-card" [class]="searchStatus()" data-testid="status-card">
+      @if (searchStatus() === 'searching') {
+        <mat-progress-bar mode="indeterminate" />
+        <span class="status-text">Searching… {{ elapsedSeconds() }}s</span>
+      }
+      @if (searchStatus() === 'found') {
+        <span class="status-icon">✓</span>
+        <span class="status-text">Found — position {{ position() }}</span>
+        <span class="status-secondary">took {{ elapsedSeconds() }}s</span>
+      }
+      @if (searchStatus() === 'notfound') {
+        <span class="status-icon">✗</span>
+        <span class="status-text">Not found ({{ elapsedSeconds() }}s)</span>
+        <span class="status-secondary">Try different heal values</span>
+      }
+    </div>
+  }
 </div>

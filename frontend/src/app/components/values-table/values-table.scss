@@ -36,3 +36,7 @@
   min-height: 0;
   height: 100%;
 }
+
+.table-row.highlighted {
+  background: color-mix(in srgb, var(--mat-sys-primary) 15%, transparent);
+}

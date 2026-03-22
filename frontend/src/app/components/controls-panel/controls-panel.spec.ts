@@ -8,6 +8,8 @@ import type { SearchStatus } from '../../services/wasm.service';
 @Component({
   template: `<tza-controls-panel
     [searchStatus]="searchStatus()"
+    [elapsedSeconds]="elapsed()"
+    [position]="position()"
     [(browseSeed)]="seed"
     (findSeed)="findSeedEmit = $event"
     (findPosition)="findPositionEmit = $event"
@@ -16,6 +18,8 @@ import type { SearchStatus } from '../../services/wasm.service';
 })
 class TestHost {
   searchStatus = signal<SearchStatus>('idle');
+  elapsed = signal(0);
+  position = signal(0);
   seed = signal(4537);
   findSeedEmit: { values: number[] } | null = null;
   findPositionEmit: { values: number[] } | null = null;
@@ -94,26 +98,49 @@ describe('ControlsPanel', () => {
     });
   });
 
-  // ── status label ──────────────────────────────────────────────────────────
+  // ── status card ───────────────────────────────────────────────────────────
 
-  it('hides status label when idle', () => {
-    expect(el.querySelector('[data-testid="search-status"]')).toBeFalsy();
+  it('hides status card when idle', () => {
+    expect(el.querySelector('[data-testid="status-card"]')).toBeFalsy();
   });
 
-  const statusCases: [SearchStatus, string][] = [
-    ['searching', 'Searching'],
-    ['found', 'Found'],
-    ['notfound', 'Not found'],
-  ];
+  it('shows status card when searching', async () => {
+    host.searchStatus.set('searching');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(el.querySelector('[data-testid="status-card"]')).toBeTruthy();
+  });
 
-  for (const [status, expected] of statusCases) {
-    it(`shows "${expected}" when status is ${status}`, async () => {
-      host.searchStatus.set(status);
-      fixture.detectChanges();
-      await fixture.whenStable();
-      expect(el.querySelector('[data-testid="search-status"]')?.textContent).toContain(expected);
-    });
-  }
+  it('shows progress bar and elapsed while searching', async () => {
+    host.searchStatus.set('searching');
+    host.elapsed.set(4);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(el.querySelector('mat-progress-bar')).toBeTruthy();
+    expect(el.querySelector('[data-testid="status-card"]')?.textContent).toContain('4s');
+  });
+
+  it('shows found message with seed and position', async () => {
+    host.searchStatus.set('found');
+    host.elapsed.set(7);
+    host.position.set(42);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const card = el.querySelector('[data-testid="status-card"]')!;
+    expect(card.textContent).toContain('Found');
+    expect(card.textContent).toContain('42');
+    expect(card.textContent).toContain('7s');
+  });
+
+  it('shows notfound message with elapsed', async () => {
+    host.searchStatus.set('notfound');
+    host.elapsed.set(12);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const card = el.querySelector('[data-testid="status-card"]')!;
+    expect(card.textContent).toContain('Not found');
+    expect(card.textContent).toContain('12s');
+  });
 
   // ── helpers ───────────────────────────────────────────────────────────────
 

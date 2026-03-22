@@ -7,6 +7,8 @@
     <mat-divider />
     <tza-controls-panel
       [searchStatus]="wasm.searchStatus()"
+      [elapsedSeconds]="wasm.elapsedSeconds()"
+      [position]="highlightRange()?.end ?? 0"
       [(browseSeed)]="browseSeed"
       [initialValues]="initialHeals"
       (findSeed)="onFindSeed($event)"
@@ -14,6 +16,10 @@
     />
   </aside>
   <main class="table-column">
-    <tza-values-table [values]="wasm.values()" />
+    <tza-values-table
+      [values]="wasm.values()"
+      [highlightRange]="highlightRange()"
+      [scrollToPosition]="highlightRange()?.start ?? null"
+    />
   </main>
 </div>

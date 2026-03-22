@@ -32,6 +32,42 @@
   gap: 12px;
 }
 
-.status-label {
+.status-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid;
   font-size: 0.875rem;
+
+  mat-progress-bar {
+    border-radius: 4px;
+    margin-bottom: 4px;
+  }
+
+  .status-icon {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .status-secondary {
+    font-size: 0.75rem;
+    opacity: 0.7;
+  }
+
+  &.searching {
+    border-color: var(--mat-sys-secondary);
+    color: var(--mat-sys-on-surface);
+  }
+
+  &.found {
+    border-color: var(--mat-sys-tertiary);
+    color: var(--mat-sys-on-surface);
+  }
+
+  &.notfound {
+    border-color: var(--mat-sys-error);
+    color: var(--mat-sys-on-surface);
+  }
 }

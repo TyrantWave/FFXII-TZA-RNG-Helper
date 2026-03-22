@@ -106,7 +106,7 @@ export class WasmService {
           this.workers = [];
           clearInterval(this.elapsedTimer!);
           this.elapsedTimer = null;
-          this.createHelper(data.seed, character, TABLE_SIZE);
+          this.createHelper(data.seed, character, 2 * TABLE_SIZE + values.length);
           this.findCasts(character, values, DEFAULT_ITERS);
           this.searchStatus.set('found');
         } else if (pending === 0) {
