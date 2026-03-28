@@ -11,14 +11,12 @@ struct CharacterInput {
     serenity: bool,
 }
 
-fn js_to_character(val: JsValue) -> character::Character {
-    let input: CharacterInput = serde_wasm_bindgen::from_value(val).unwrap();
-    character::Character::new(
-        input.level,
-        input.magic,
-        spell::Spell::from_str(&input.spell).unwrap(),
-        input.serenity,
-    )
+fn js_to_character(val: JsValue) -> Result<character::Character, JsValue> {
+    let input: CharacterInput = serde_wasm_bindgen::from_value(val)
+        .map_err(|e| JsValue::from_str(&e.to_string()))?;
+    let sp = spell::Spell::from_str(&input.spell)
+        .map_err(|_| JsValue::from_str(&format!("unknown spell: {}", input.spell)))?;
+    Ok(character::Character::new(input.level, input.magic, sp, input.serenity))
 }
 
 #[wasm_bindgen]
@@ -29,22 +27,25 @@ pub struct RNGHelper {
 #[wasm_bindgen]
 impl RNGHelper {
     #[wasm_bindgen(constructor)]
-    pub fn new(seed: Option<u32>, character: JsValue, iters: usize) -> RNGHelper {
-        RNGHelper {
-            inner: rng_helper::RNGHelper::new(seed, &js_to_character(character), iters),
-        }
+    pub fn new(seed: Option<u32>, character: JsValue, iters: usize) -> Result<RNGHelper, JsValue> {
+        Ok(RNGHelper {
+            inner: rng_helper::RNGHelper::new(seed, &js_to_character(character)?, iters),
+        })
     }
 
-    pub fn push(&mut self, character: JsValue) {
-        self.inner.push(&js_to_character(character));
+    pub fn push(&mut self, character: JsValue) -> Result<(), JsValue> {
+        self.inner.push(&js_to_character(character)?);
+        Ok(())
     }
 
-    pub fn next(&mut self, character: JsValue) {
-        self.inner.next(&js_to_character(character));
+    pub fn next(&mut self, character: JsValue) -> Result<(), JsValue> {
+        self.inner.next(&js_to_character(character)?);
+        Ok(())
     }
 
-    pub fn apply_character(&mut self, character: JsValue) {
-        self.inner.apply_character(&js_to_character(character));
+    pub fn apply_character(&mut self, character: JsValue) -> Result<(), JsValue> {
+        self.inner.apply_character(&js_to_character(character)?);
+        Ok(())
     }
 
     pub fn find_casts(
@@ -52,14 +53,15 @@ impl RNGHelper {
         character: JsValue,
         values: JsValue,
         limit: Option<usize>,
-    ) -> bool {
-        let vals: Vec<i32> = serde_wasm_bindgen::from_value(values).unwrap();
-        self.inner
-            .find_casts(&js_to_character(character), &vals, limit)
+    ) -> Result<bool, JsValue> {
+        let vals: Vec<i32> = serde_wasm_bindgen::from_value(values)
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        Ok(self.inner.find_casts(&js_to_character(character)?, &vals, limit))
     }
 
-    pub fn values(&self) -> JsValue {
-        serde_wasm_bindgen::to_value(&self.inner.values).unwrap()
+    pub fn values(&self) -> Result<JsValue, JsValue> {
+        serde_wasm_bindgen::to_value(&self.inner.values)
+            .map_err(|e| JsValue::from_str(&e.to_string()))
     }
 
     pub fn seed(&self) -> u32 {
@@ -76,9 +78,12 @@ impl RNGHelper {
         min: u32,
         max: u32,
         iters: usize,
-    ) -> Option<RNGHelper> {
-        let vals: Vec<i32> = serde_wasm_bindgen::from_value(values).unwrap();
-        rng_helper::RNGHelper::find_seed(&js_to_character(character), &vals, min, max, iters)
-            .map(|inner| RNGHelper { inner })
+    ) -> Result<Option<RNGHelper>, JsValue> {
+        let vals: Vec<i32> = serde_wasm_bindgen::from_value(values)
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+        Ok(
+            rng_helper::RNGHelper::find_seed(&js_to_character(character)?, &vals, min, max, iters)
+                .map(|inner| RNGHelper { inner }),
+        )
     }
 }
