@@ -172,7 +172,7 @@ impl RNGHelper {
             .unwrap_or(4);
         let chunk = ((max - min) as usize).div_ceil(n) as u32;
         let (tx, rx) = std::sync::mpsc::channel();
-        let values = Arc::new(values.to_vec());
+        let values: Arc<[i32]> = Arc::from(values);
 
         for i in 0..n as u32 {
             let tx = tx.clone();

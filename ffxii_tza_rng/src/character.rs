@@ -16,6 +16,7 @@ pub struct Character {
 
 impl Character {
     pub fn new(level: u8, magic: u8, spell: spell::Spell, serenity: bool) -> Character {
+        // level and magic are u8 (max 255); their sum fits in u16 (max 510).
         let base_multiplier = (2.0 + magic as f64 * (level as u16 + magic as u16) as f64 / 256.0)
             * if serenity { 1.5 } else { 1.0 };
         let power = spell.power() as f64;
@@ -24,14 +25,14 @@ impl Character {
             magic,
             spell,
             serenity,
-            modulus: (power * 12.5).floor() as u32,
+            modulus: (power * 12.5).floor() as u32, // power <= 120, so max 1500 — fits in u32
             base: power * base_multiplier,
             scale: base_multiplier / 100.0,
         }
     }
 
     pub fn cast(&self, rng_val: u32) -> i32 {
-        (self.base + (rng_val % self.modulus) as f64 * self.scale) as i32
+        (self.base + (rng_val % self.modulus) as f64 * self.scale) as i32 // heal values are bounded well within i32
     }
 
     /// Returns the range [lo, hi] of `rng_val % modulus` values that produce the given heal.

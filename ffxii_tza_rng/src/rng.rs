@@ -1,4 +1,5 @@
 const N: usize = 624;
+const M: usize = 397;
 
 #[derive(Debug)]
 pub struct RNG {
@@ -14,8 +15,6 @@ pub struct RNG {
 impl RNG {
     pub const DEFAULT_SEED: u32 = 4537;
 
-    const N: usize = 624;
-    const M: usize = 397;
     const MATRIX_A: u32 = 0x9908_b0df; // constant vector a
     const UPPER_MASK: u32 = 0x8000_0000; // most significant w-r bits
     const LOWER_MASK: u32 = 0x7fff_ffff; // least significant r bits
@@ -27,15 +26,14 @@ impl RNG {
 
     /// Initialise an RNG (mt[N]) with a given seed
     fn sgenrand(seed: u32) -> RNG {
-        let mut mt = [0u32; RNG::N];
+        let mut mt = [0u32; N];
         mt[0] = seed;
         let mut mti = 1;
-        while mti < RNG::N {
+        while mti < N {
             let operand = mt[mti - 1] ^ (mt[mti - 1] >> 30);
-            let mut val = 1_812_433_253u32
+            let val = 1_812_433_253u32
                 .wrapping_mul(operand)
                 .wrapping_add(mti as u32);
-            val &= 0xffff_ffff;
             mt[mti] = val;
             mti += 1;
         }
@@ -59,25 +57,25 @@ impl RNG {
     fn twist(&mut self) {
         let mut y;
         let mut kk = 0;
-        while kk < (RNG::N - RNG::M) {
+        while kk < (N - M) {
             y = (self.mt[kk] & RNG::UPPER_MASK) | (self.mt[kk + 1] & RNG::LOWER_MASK);
-            self.mt[kk] = self.mt[kk + RNG::M] ^ (y >> 1) ^ RNG::mag(y);
+            self.mt[kk] = self.mt[kk + M] ^ (y >> 1) ^ RNG::mag(y);
             kk += 1;
         }
-        while kk < (RNG::N - 1) {
+        while kk < (N - 1) {
             y = (self.mt[kk] & RNG::UPPER_MASK) | (self.mt[kk + 1] & RNG::LOWER_MASK);
-            self.mt[kk] = self.mt[kk - (RNG::N - RNG::M)] ^ (y >> 1) ^ RNG::mag(y);
+            self.mt[kk] = self.mt[kk - (N - M)] ^ (y >> 1) ^ RNG::mag(y);
             kk += 1;
         }
-        y = (self.mt[RNG::N - 1] & RNG::UPPER_MASK) | (self.mt[0] & RNG::LOWER_MASK);
-        self.mt[RNG::N - 1] = self.mt[RNG::M - 1] ^ (y >> 1) ^ RNG::mag(y);
+        y = (self.mt[N - 1] & RNG::UPPER_MASK) | (self.mt[0] & RNG::LOWER_MASK);
+        self.mt[N - 1] = self.mt[M - 1] ^ (y >> 1) ^ RNG::mag(y);
         self.mti = 0;
     }
 
     pub fn gen_rand(&mut self) -> u32 {
         let mut y;
 
-        if self.mti >= RNG::N {
+        if self.mti >= N {
             self.twist();
         }
 

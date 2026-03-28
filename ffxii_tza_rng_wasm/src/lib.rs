@@ -15,7 +15,7 @@ fn js_to_character(val: JsValue) -> Result<character::Character, JsValue> {
     let input: CharacterInput = serde_wasm_bindgen::from_value(val)
         .map_err(|e| JsValue::from_str(&e.to_string()))?;
     let sp = spell::Spell::from_str(&input.spell)
-        .map_err(|_| JsValue::from_str(&format!("unknown spell: {}", input.spell)))?;
+        .map_err(|e| JsValue::from_str(&e.to_string()))?;
     Ok(character::Character::new(input.level, input.magic, sp, input.serenity))
 }
 

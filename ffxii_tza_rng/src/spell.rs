@@ -29,16 +29,27 @@ impl Spell {
     }
 }
 
-impl FromStr for Spell {
-    type Err = ();
+#[derive(Debug)]
+pub struct ParseSpellError;
 
-    fn from_str(s: &str) -> Result<Self, ()> {
+impl std::fmt::Display for ParseSpellError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("unknown spell: expected Cure, Cura, Curaga, or Curaja")
+    }
+}
+
+impl std::error::Error for ParseSpellError {}
+
+impl FromStr for Spell {
+    type Err = ParseSpellError;
+
+    fn from_str(s: &str) -> Result<Self, ParseSpellError> {
         match s {
             "Cure" => Ok(Spell::Cure),
             "Cura" => Ok(Spell::Cura),
             "Curaga" => Ok(Spell::Curaga),
             "Curaja" => Ok(Spell::Curaja),
-            _ => Err(()),
+            _ => Err(ParseSpellError),
         }
     }
 }
