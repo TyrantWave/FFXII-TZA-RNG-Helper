@@ -112,7 +112,7 @@ fn cmd_find_seed(args: &[String]) {
     let start = std::time::Instant::now();
     let done = Arc::new(AtomicBool::new(false));
     let done_clone = Arc::clone(&done);
-    std::thread::spawn(move || {
+    let progress = std::thread::spawn(move || {
         while !done_clone.load(Ordering::Relaxed) {
             print!("\r  Elapsed: {}s", start.elapsed().as_secs());
             std::io::stdout().flush().unwrap();
@@ -123,6 +123,7 @@ fn cmd_find_seed(args: &[String]) {
     let result = rng_helper::RNGHelper::find_seed_parallel(&character, &values, MIN, MAX, ITERS);
     let elapsed = start.elapsed().as_secs();
     done.store(true, Ordering::Relaxed);
+    let _ = progress.join();
     print!("\r                    \r"); // clear the elapsed line
 
     match result {

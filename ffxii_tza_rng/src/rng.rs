@@ -24,9 +24,6 @@ impl RNG {
         RNG::sgenrand(RNG::DEFAULT_SEED)
     }
 
-    pub fn from(seed: u32) -> RNG {
-        RNG::sgenrand(seed)
-    }
 
     /// Initialise an RNG (mt[N]) with a given seed
     fn sgenrand(seed: u32) -> RNG {
@@ -101,5 +98,11 @@ impl RNG {
 impl Default for RNG {
     fn default() -> Self {
         RNG::new()
+    }
+}
+
+impl From<u32> for RNG {
+    fn from(seed: u32) -> Self {
+        RNG::sgenrand(seed)
     }
 }

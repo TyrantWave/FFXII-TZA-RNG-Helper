@@ -30,7 +30,7 @@ pub struct RNGHelper {
 fn check_seed(seed: u32, targets: &[(u32, u32)], modulus: u32, iters: usize) -> bool {
     let len = targets.len();
     const MAX_WINDOW: usize = 16;
-    debug_assert!(len <= MAX_WINDOW);
+    assert!(len <= MAX_WINDOW, "targets length {len} exceeds MAX_WINDOW {MAX_WINDOW}");
     let mut window = [0u32; MAX_WINDOW];
     let mut rng = rng::RNG::from(seed);
 
@@ -62,12 +62,12 @@ impl RNGHelper {
 
     /// Generates a new RNG list, with `iters` iterations filled
     pub fn new(seed: Option<u32>, character: &character::Character, iters: usize) -> RNGHelper {
-        let mut _rng = match seed {
+        let rng = match seed {
             Some(s) => rng::RNG::from(s),
-            _ => rng::RNG::new(),
+            None => rng::RNG::new(),
         };
         let values = VecDeque::with_capacity(iters);
-        let mut helper = RNGHelper { values, rng: _rng };
+        let mut helper = RNGHelper { values, rng };
         for _ in 0..iters {
             helper.push(character);
         }
@@ -117,9 +117,12 @@ impl RNGHelper {
             let mut matched = true;
             // Check the passed values against the spell_values - if any don't match, break and cycle again
             for (idx, val) in values.iter().enumerate() {
-                if self.values[idx].spell != *val {
-                    matched = false;
-                    break;
+                match self.values.get(idx) {
+                    Some(v) if v.spell == *val => {}
+                    _ => {
+                        matched = false;
+                        break;
+                    }
                 }
             }
             // If we get here, all values matched (or were None), so return true
