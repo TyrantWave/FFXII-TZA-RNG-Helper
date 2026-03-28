@@ -5,7 +5,7 @@
       matInput
       type="number"
       [value]="browseSeed()"
-      (input)="browseSeed.set(+$any($event.target).value)"
+      (input)="onSeedInput($event)"
       data-testid="seed-input"
     />
   </mat-form-field>
@@ -18,7 +18,7 @@
           matInput
           type="number"
           [value]="observedValues()[i] ?? ''"
-          (input)="setValue(i, $any($event.target).value)"
+          (input)="setValue(i, $event)"
           [attr.data-testid]="'heal-' + i"
         />
       </mat-form-field>

@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+} from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import { MatDividerModule } from '@angular/material/divider';
 import {
   WasmService,
@@ -22,6 +31,7 @@ import { ValuesTable } from './components/values-table/values-table';
 })
 export class App {
   readonly wasm = inject(WasmService);
+  private readonly _document = inject(DOCUMENT);
 
   readonly character = signal<Character>(DEFAULT_CHARACTER);
   readonly browseSeed = signal(DEFAULT_SEED);
@@ -50,11 +60,11 @@ export class App {
   constructor() {
     effect(() => {
       if (!this.wasm.isReady()) return;
-      this.wasm.createHelper(DEFAULT_SEED, this.character(), TABLE_SIZE);
+      this.wasm.createHelper(DEFAULT_SEED, untracked(this.character), TABLE_SIZE);
       if (this.initialHeals.length) {
         this.lastSearchCount.set(this.initialHeals.length);
         this.wasm.findSeed(
-          this.character(),
+          untracked(this.character),
           this.initialHeals,
           DEFAULT_MIN,
           DEFAULT_MAX,
@@ -68,11 +78,10 @@ export class App {
       const r = this.highlightRange();
       if (r) this.pivotPosition.set(r.end + 1);
     });
-  }
-
-  onCharacterChange(c: Character): void {
-    this.character.set(c);
-    this.wasm.applyCharacter(c);
+    effect(() => {
+      if (!this.wasm.isReady()) return;
+      this.wasm.applyCharacter(this.character());
+    });
   }
 
   onFindSeed({ values }: { values: number[] }): void {
@@ -98,7 +107,8 @@ export class App {
   }
 
   private parseHeals(): number[] {
-    const raw = new URLSearchParams(window.location.search).get('heals') ?? '';
+    const raw =
+      new URLSearchParams(this._document.defaultView?.location.search ?? '').get('heals') ?? '';
     return raw
       ? raw
           .split(',')

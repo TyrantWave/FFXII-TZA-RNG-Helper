@@ -7,7 +7,7 @@
       min="1"
       max="99"
       [value]="level()"
-      (input)="onLevelInput($any($event.target).value)"
+      (input)="onLevelInput($event)"
       data-testid="level-input"
     />
   </mat-form-field>
@@ -20,7 +20,7 @@
       min="1"
       max="99"
       [value]="magic()"
-      (input)="onMagicInput($any($event.target).value)"
+      (input)="onMagicInput($event)"
       data-testid="magic-input"
     />
   </mat-form-field>

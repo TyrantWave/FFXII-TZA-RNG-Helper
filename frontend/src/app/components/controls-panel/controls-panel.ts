@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, input, model, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, linkedSignal, model, output } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -25,22 +25,23 @@ export class ControlsPanel {
   readonly findSeed = output<{ values: number[] }>();
   readonly findPosition = output<{ values: number[] }>();
 
-  readonly observedValues = signal<(number | null)[]>(Array(VALUE_COUNT).fill(null));
+  readonly observedValues = linkedSignal<(number | null)[]>(() => {
+    const init = this.initialValues();
+    if (!init.length) return Array(VALUE_COUNT).fill(null);
+    const padded: (number | null)[] = Array(VALUE_COUNT).fill(null);
+    init.slice(0, VALUE_COUNT).forEach((v, i) => {
+      padded[i] = v;
+    });
+    return padded;
+  });
   readonly indices = Array.from({ length: VALUE_COUNT }, (_, i) => i);
 
-  constructor() {
-    effect(() => {
-      const init = this.initialValues();
-      if (!init.length) return;
-      const padded: (number | null)[] = Array(VALUE_COUNT).fill(null);
-      init.forEach((v, i) => {
-        if (i < VALUE_COUNT) padded[i] = v;
-      });
-      this.observedValues.set(padded);
-    });
+  onSeedInput(event: Event): void {
+    this.browseSeed.set(+(event.target as HTMLInputElement).value);
   }
 
-  setValue(index: number, raw: string): void {
+  setValue(index: number, event: Event): void {
+    const raw = (event.target as HTMLInputElement).value;
     const n = raw === '' ? null : parseInt(raw, 10);
     const updated = [...this.observedValues()];
     updated[index] = isNaN(n as number) ? null : n;

@@ -8,18 +8,11 @@ import type { Character } from '../../services/wasm.service';
 const DEFAULT: Character = { level: 70, magic: 99, spell: 'Cure', serenity: true };
 
 @Component({
-  template: `<tza-character-panel
-    [character]="character()"
-    (characterChange)="onChange($event)"
-  />`,
+  template: `<tza-character-panel [(character)]="character" />`,
   imports: [CharacterPanel],
 })
 class TestHost {
   character = signal<Character>(DEFAULT);
-  lastEmit: Character | null = null;
-  onChange(c: Character) {
-    this.lastEmit = c;
-  }
 }
 
 describe('CharacterPanel', () => {
@@ -49,22 +42,22 @@ describe('CharacterPanel', () => {
     expect(input!.value).toBe('99');
   });
 
-  it('emits characterChange with updated level', async () => {
+  it('updates character model with updated level', async () => {
     const input = el.querySelector<HTMLInputElement>('[data-testid="level-input"]')!;
     input.value = '50';
     input.dispatchEvent(new Event('input'));
     fixture.detectChanges();
     await fixture.whenStable();
-    expect(host.lastEmit?.level).toBe(50);
+    expect(host.character().level).toBe(50);
   });
 
-  it('emits characterChange with updated magic', async () => {
+  it('updates character model with updated magic', async () => {
     const input = el.querySelector<HTMLInputElement>('[data-testid="magic-input"]')!;
     input.value = '80';
     input.dispatchEvent(new Event('input'));
     fixture.detectChanges();
     await fixture.whenStable();
-    expect(host.lastEmit?.magic).toBe(80);
+    expect(host.character().magic).toBe(80);
   });
 
   it('renders spell selector', () => {
