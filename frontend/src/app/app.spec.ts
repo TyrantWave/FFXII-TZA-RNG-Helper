@@ -133,8 +133,9 @@ describe('App — pivotPosition is not reset by push() after a row click', () =>
     if (viewport) vi.spyOn(viewport, 'scrollToIndex').mockImplementation(() => {});
 
     // Simulate lastSearchCount = 2 (private signal, accessed for test only)
-    (app as unknown as { lastSearchCount: ReturnType<typeof signal<number>> })
-      ['lastSearchCount'].set(2);
+    (app as unknown as { lastSearchCount: ReturnType<typeof signal<number>> })[
+      'lastSearchCount'
+    ].set(2);
 
     // Trigger the search-found effect
     searchStatusSignal.set('found');

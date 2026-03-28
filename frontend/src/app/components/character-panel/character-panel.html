@@ -27,11 +27,7 @@
 
   <mat-form-field appearance="outline">
     <mat-label>Spell</mat-label>
-    <mat-select
-      [value]="spell()"
-      (valueChange)="onSpellChange($event)"
-      data-testid="spell-select"
-    >
+    <mat-select [value]="spell()" (valueChange)="onSpellChange($event)" data-testid="spell-select">
       @for (s of spells; track s) {
         <mat-option [value]="s">{{ s }}</mat-option>
       }

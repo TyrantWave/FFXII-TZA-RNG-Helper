@@ -1,9 +1,6 @@
 <div class="layout">
   <aside class="controls-column">
-    <tza-character-panel
-      [character]="character()"
-      (characterChange)="onCharacterChange($event)"
-    />
+    <tza-character-panel [character]="character()" (characterChange)="onCharacterChange($event)" />
     <mat-divider />
     <tza-controls-panel
       [searchStatus]="wasm.searchStatus()"

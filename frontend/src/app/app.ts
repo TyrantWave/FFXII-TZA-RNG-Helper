@@ -1,16 +1,24 @@
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { MatDividerModule } from '@angular/material/divider';
-import { WasmService, DEFAULT_SEED, DEFAULT_MIN, DEFAULT_MAX, DEFAULT_ITERS, TABLE_SIZE, type Character } from './services/wasm.service';
+import {
+  WasmService,
+  DEFAULT_SEED,
+  DEFAULT_MIN,
+  DEFAULT_MAX,
+  DEFAULT_ITERS,
+  TABLE_SIZE,
+  type Character,
+} from './services/wasm.service';
 import { DEFAULT_CHARACTER, CharacterPanel } from './components/character-panel/character-panel';
 import { ControlsPanel } from './components/controls-panel/controls-panel';
 import { ValuesTable } from './components/values-table/values-table';
-
 
 @Component({
   selector: 'tza-root',
   imports: [MatDividerModule, CharacterPanel, ControlsPanel, ValuesTable],
   templateUrl: './app.html',
   styleUrl: './app.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class App {
   readonly wasm = inject(WasmService);
@@ -22,18 +30,22 @@ export class App {
   private readonly lastSearchCount = signal(0);
   readonly pivotPosition = signal<number | null>(null);
 
-  readonly highlightRange = computed(() => {
-    if (this.wasm.searchStatus() !== 'found') return null;
-    const count = this.lastSearchCount();
-    const vals = this.wasm.values();
-    if (count === 0 || vals.length < count) return null;
-    return { start: vals[0].position, end: vals[count - 1].position };
-  }, {
-    // Pushing rows extends the buffer but never changes start/end of the match window.
-    // Without this, every push creates a new object, re-fires the search-found effect,
-    // and resets pivotPosition back to the initial post-search value.
-    equal: (a, b) => a === b || (a !== null && b !== null && a.start === b.start && a.end === b.end),
-  });
+  readonly highlightRange = computed(
+    () => {
+      if (this.wasm.searchStatus() !== 'found') return null;
+      const count = this.lastSearchCount();
+      const vals = this.wasm.values();
+      if (count === 0 || vals.length < count) return null;
+      return { start: vals[0].position, end: vals[count - 1].position };
+    },
+    {
+      // Pushing rows extends the buffer but never changes start/end of the match window.
+      // Without this, every push creates a new object, re-fires the search-found effect,
+      // and resets pivotPosition back to the initial post-search value.
+      equal: (a, b) =>
+        a === b || (a !== null && b !== null && a.start === b.start && a.end === b.end),
+    },
+  );
 
   constructor() {
     effect(() => {
@@ -41,7 +53,13 @@ export class App {
       this.wasm.createHelper(DEFAULT_SEED, this.character(), TABLE_SIZE);
       if (this.initialHeals.length) {
         this.lastSearchCount.set(this.initialHeals.length);
-        this.wasm.findSeed(this.character(), this.initialHeals, DEFAULT_MIN, DEFAULT_MAX, DEFAULT_ITERS);
+        this.wasm.findSeed(
+          this.character(),
+          this.initialHeals,
+          DEFAULT_MIN,
+          DEFAULT_MAX,
+          DEFAULT_ITERS,
+        );
       }
     });
     effect(() => {
@@ -72,7 +90,7 @@ export class App {
     const newPivot = pos + 1;
     this.pivotPosition.set(newPivot);
     const vals = this.wasm.values();
-    const rowsAfter = vals.filter(v => v.position >= newPivot).length;
+    const rowsAfter = vals.filter((v) => v.position >= newPivot).length;
     const needed = Math.max(0, TABLE_SIZE - rowsAfter);
     for (let i = 0; i < needed; i++) {
       this.wasm.push(this.character());
@@ -81,6 +99,11 @@ export class App {
 
   private parseHeals(): number[] {
     const raw = new URLSearchParams(window.location.search).get('heals') ?? '';
-    return raw ? raw.split(',').map(Number).filter(n => !isNaN(n)) : [];
+    return raw
+      ? raw
+          .split(',')
+          .map(Number)
+          .filter((n) => !isNaN(n))
+      : [];
   }
 }

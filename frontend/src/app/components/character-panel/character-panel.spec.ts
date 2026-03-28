@@ -17,7 +17,9 @@ const DEFAULT: Character = { level: 70, magic: 99, spell: 'Cure', serenity: true
 class TestHost {
   character = signal<Character>(DEFAULT);
   lastEmit: Character | null = null;
-  onChange(c: Character) { this.lastEmit = c; }
+  onChange(c: Character) {
+    this.lastEmit = c;
+  }
 }
 
 describe('CharacterPanel', () => {

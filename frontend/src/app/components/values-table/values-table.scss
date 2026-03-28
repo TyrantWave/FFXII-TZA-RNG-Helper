@@ -29,7 +29,9 @@
 
 .table-row {
   cursor: pointer;
-  transition: background 0.1s ease, opacity 0.1s ease;
+  transition:
+    background 0.1s ease,
+    opacity 0.1s ease;
 
   &:nth-child(even) {
     background: rgba(0, 0, 0, 0.04);

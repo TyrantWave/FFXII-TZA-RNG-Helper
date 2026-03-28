@@ -27,7 +27,9 @@
 
   <div class="action-row">
     <button mat-flat-button (click)="onFindSeed()" data-testid="find-seed-btn">Find Seed</button>
-    <button mat-flat-button (click)="onFindPosition()" data-testid="find-position-btn">Find Position</button>
+    <button mat-flat-button (click)="onFindPosition()" data-testid="find-position-btn">
+      Find Position
+    </button>
   </div>
 
   @if (searchStatus() !== 'idle') {

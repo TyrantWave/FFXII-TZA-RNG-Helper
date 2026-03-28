@@ -1,4 +1,4 @@
-import { Component, input, output, linkedSignal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output, linkedSignal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -15,6 +15,7 @@ const SPELLS: Character['spell'][] = ['Cure', 'Cura', 'Curaga', 'Curaja'];
   imports: [FormsModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatSlideToggleModule],
   templateUrl: './character-panel.html',
   styleUrl: './character-panel.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CharacterPanel {
   readonly character = input<Character>(DEFAULT_CHARACTER);

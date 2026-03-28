@@ -1,4 +1,4 @@
-import { Component, effect, input, model, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input, model, output, signal } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -13,6 +13,7 @@ const VALUE_COUNT = 5;
   imports: [MatFormFieldModule, MatInputModule, MatButtonModule, MatProgressBarModule, FormsModule],
   templateUrl: './controls-panel.html',
   styleUrl: './controls-panel.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ControlsPanel {
   readonly searchStatus = input<SearchStatus>('idle');
@@ -32,7 +33,9 @@ export class ControlsPanel {
       const init = this.initialValues();
       if (!init.length) return;
       const padded: (number | null)[] = Array(VALUE_COUNT).fill(null);
-      init.forEach((v, i) => { if (i < VALUE_COUNT) padded[i] = v; });
+      init.forEach((v, i) => {
+        if (i < VALUE_COUNT) padded[i] = v;
+      });
       this.observedValues.set(padded);
     });
   }

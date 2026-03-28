@@ -8,7 +8,7 @@
     <div
       *cdkVirtualFor="let row of values()"
       class="table-row"
-      [ngClass]="rowClasses(row.position)"
+      [class]="rowClassMap()(row.position)"
       (click)="rowClick.emit(row.position)"
       data-testid="values-row"
     >

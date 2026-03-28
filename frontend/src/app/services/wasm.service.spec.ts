@@ -103,7 +103,12 @@ describe('WasmService', () => {
     it('populates values signal from helper', () => {
       service.createHelper(4537, defaultCharacter, 10);
       expect(service.values()).toHaveLength(3);
-      expect(service.values()[0]).toEqual({ position: 1, value: 1288459236, spell: 2065, chest: 36 });
+      expect(service.values()[0]).toEqual({
+        position: 1,
+        value: 1288459236,
+        spell: 2065,
+        chest: 36,
+      });
     });
 
     it('populates seed signal', () => {
@@ -168,16 +173,23 @@ describe('WasmService', () => {
   // ── findSeed ──────────────────────────────────────────────────────────────
 
   describe('findSeed', () => {
-    type MockWorker = { postMessage: ReturnType<typeof vi.fn>; onmessage: ((e: { data: any }) => void) | null; terminate: ReturnType<typeof vi.fn> };
+    type MockWorker = {
+      postMessage: ReturnType<typeof vi.fn>;
+      onmessage: ((e: { data: any }) => void) | null;
+      terminate: ReturnType<typeof vi.fn>;
+    };
     let mockWorkers: MockWorker[];
 
     beforeEach(() => {
       mockWorkers = [];
-      vi.stubGlobal('Worker', vi.fn(function () {
-        const w: MockWorker = { postMessage: vi.fn(), onmessage: null, terminate: vi.fn() };
-        mockWorkers.push(w);
-        return w;
-      }));
+      vi.stubGlobal(
+        'Worker',
+        vi.fn(function () {
+          const w: MockWorker = { postMessage: vi.fn(), onmessage: null, terminate: vi.fn() };
+          mockWorkers.push(w);
+          return w;
+        }),
+      );
       // Fix hardwareConcurrency so tests are deterministic regardless of host machine
       Object.defineProperty(navigator, 'hardwareConcurrency', { value: 4, configurable: true });
     });
@@ -202,7 +214,7 @@ describe('WasmService', () => {
 
     it('partitions the range evenly across workers', () => {
       service.findSeed(defaultCharacter, [2255], 0, 1000, 10);
-      const msgs = mockWorkers.map(w => w.postMessage.mock.calls[0][0]);
+      const msgs = mockWorkers.map((w) => w.postMessage.mock.calls[0][0]);
       expect(msgs[0]).toMatchObject({ min: 0, max: 250 });
       expect(msgs[1]).toMatchObject({ min: 250, max: 500 });
       expect(msgs[2]).toMatchObject({ min: 500, max: 750 });
@@ -211,13 +223,15 @@ describe('WasmService', () => {
 
     it('includes character, values and iters in each worker message', () => {
       service.findSeed(defaultCharacter, [2255, 2063], 0, 1000, 42);
-      mockWorkers.forEach(w => {
-        expect(w.postMessage).toHaveBeenCalledWith(expect.objectContaining({
-          type: 'findSeed',
-          character: defaultCharacter,
-          values: [2255, 2063],
-          iters: 42,
-        }));
+      mockWorkers.forEach((w) => {
+        expect(w.postMessage).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'findSeed',
+            character: defaultCharacter,
+            values: [2255, 2063],
+            iters: 42,
+          }),
+        );
       });
     });
 
@@ -237,18 +251,22 @@ describe('WasmService', () => {
     it('terminates all workers when any worker finds a result', () => {
       service.findSeed(defaultCharacter, [2255], 0, 1000, 10);
       mockWorkers[1].onmessage!({ data: { type: 'result', seed: 42, values: [] } });
-      mockWorkers.forEach(w => expect(w.terminate).toHaveBeenCalled());
+      mockWorkers.forEach((w) => expect(w.terminate).toHaveBeenCalled());
     });
 
     it('stays searching until all workers have responded', () => {
       service.findSeed(defaultCharacter, [2255], 0, 1000, 10);
-      mockWorkers.slice(0, 3).forEach(w => w.onmessage!({ data: { type: 'result', seed: null, values: null } }));
+      mockWorkers
+        .slice(0, 3)
+        .forEach((w) => w.onmessage!({ data: { type: 'result', seed: null, values: null } }));
       expect(service.searchStatus()).toBe('searching');
     });
 
     it('sets searchStatus to notfound only when all workers return null', () => {
       service.findSeed(defaultCharacter, [2255], 0, 1000, 10);
-      mockWorkers.forEach(w => w.onmessage!({ data: { type: 'result', seed: null, values: null } }));
+      mockWorkers.forEach((w) =>
+        w.onmessage!({ data: { type: 'result', seed: null, values: null } }),
+      );
       expect(service.searchStatus()).toBe('notfound');
     });
 
@@ -256,7 +274,7 @@ describe('WasmService', () => {
       service.findSeed(defaultCharacter, [2255], 0, 1000, 10);
       const firstBatch = [...mockWorkers];
       service.findSeed(defaultCharacter, [2255], 0, 1000, 10);
-      firstBatch.forEach(w => expect(w.terminate).toHaveBeenCalled());
+      firstBatch.forEach((w) => expect(w.terminate).toHaveBeenCalled());
     });
 
     it('spawns a fresh set of workers for each search', () => {
@@ -269,17 +287,24 @@ describe('WasmService', () => {
   // ── elapsedSeconds ────────────────────────────────────────────────────────
 
   describe('elapsedSeconds', () => {
-    type MockWorker = { postMessage: ReturnType<typeof vi.fn>; onmessage: ((e: { data: any }) => void) | null; terminate: ReturnType<typeof vi.fn> };
+    type MockWorker = {
+      postMessage: ReturnType<typeof vi.fn>;
+      onmessage: ((e: { data: any }) => void) | null;
+      terminate: ReturnType<typeof vi.fn>;
+    };
     let mockWorkers: MockWorker[];
 
     beforeEach(() => {
       vi.useFakeTimers();
       mockWorkers = [];
-      vi.stubGlobal('Worker', vi.fn(function () {
-        const w: MockWorker = { postMessage: vi.fn(), onmessage: null, terminate: vi.fn() };
-        mockWorkers.push(w);
-        return w;
-      }));
+      vi.stubGlobal(
+        'Worker',
+        vi.fn(function () {
+          const w: MockWorker = { postMessage: vi.fn(), onmessage: null, terminate: vi.fn() };
+          mockWorkers.push(w);
+          return w;
+        }),
+      );
       Object.defineProperty(navigator, 'hardwareConcurrency', { value: 4, configurable: true });
     });
 
@@ -309,7 +334,7 @@ describe('WasmService', () => {
     it('freezes when all workers return notfound', () => {
       service.findSeed(defaultCharacter, [2255], 0, 1000, 10);
       vi.advanceTimersByTime(2000);
-      mockWorkers.forEach(w => w.onmessage!({ data: { seed: null } }));
+      mockWorkers.forEach((w) => w.onmessage!({ data: { seed: null } }));
       vi.advanceTimersByTime(2000);
       expect(service.elapsedSeconds()).toBe(2);
     });
@@ -362,7 +387,6 @@ describe('WasmService', () => {
       service.findCasts(defaultCharacter, [9999]);
       expect(service.values()).toEqual(before);
     });
-
   });
 
   describe('findCasts (no helper)', () => {
@@ -383,7 +407,9 @@ describe('WasmService', () => {
     });
 
     it('refreshes signals after apply', () => {
-      const updatedValues: ValueLens[] = [{ position: 1, value: 1288459236, spell: 1900, chest: 36 }];
+      const updatedValues: ValueLens[] = [
+        { position: 1, value: 1288459236, spell: 1900, chest: 36 },
+      ];
       mockHelper.values.mockReturnValueOnce(updatedValues);
       service.applyCharacter({ ...defaultCharacter, magic: 50 });
       expect(service.values()[0].spell).toBe(1900);

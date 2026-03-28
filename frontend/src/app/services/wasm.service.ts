@@ -77,7 +77,7 @@ export class WasmService {
   }
 
   findSeed(character: Character, values: number[], min: number, max: number, iters: number): void {
-    this.workers.forEach(w => w.terminate());
+    this.workers.forEach((w) => w.terminate());
     this.workers = [];
     if (this.elapsedTimer) clearInterval(this.elapsedTimer);
     this.elapsedSeconds.set(0);
@@ -95,14 +95,16 @@ export class WasmService {
     for (let i = 0; i < n; i++) {
       const wMin = min + i * chunk;
       const wMax = Math.min(wMin + chunk, max);
-      const w = new Worker(new URL('../../workers/rng.worker', import.meta.url), { type: 'module' });
+      const w = new Worker(new URL('../../workers/rng.worker', import.meta.url), {
+        type: 'module',
+      });
       this.workers.push(w);
       w.onmessage = ({ data }) => {
         if (won) return;
         pending--;
         if (data.seed !== null) {
           won = true;
-          this.workers.forEach(w => w.terminate());
+          this.workers.forEach((w) => w.terminate());
           this.workers = [];
           clearInterval(this.elapsedTimer!);
           this.elapsedTimer = null;
