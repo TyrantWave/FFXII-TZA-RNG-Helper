@@ -23,7 +23,6 @@ impl RNG {
         RNG::sgenrand(RNG::DEFAULT_SEED)
     }
 
-
     /// Initialise an RNG (mt[N]) with a given seed
     fn sgenrand(seed: u32) -> RNG {
         let mut mt = [0u32; N];

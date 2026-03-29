@@ -30,7 +30,10 @@ pub struct RNGHelper {
 fn check_seed(seed: u32, targets: &[(u32, u32)], modulus: u32, iters: usize) -> bool {
     let len = targets.len();
     const MAX_WINDOW: usize = 16;
-    assert!(len <= MAX_WINDOW, "targets length {len} exceeds MAX_WINDOW {MAX_WINDOW}");
+    assert!(
+        len <= MAX_WINDOW,
+        "targets length {len} exceeds MAX_WINDOW {MAX_WINDOW}"
+    );
     let mut window = [0u32; MAX_WINDOW];
     let mut rng = rng::RNG::from(seed);
 
