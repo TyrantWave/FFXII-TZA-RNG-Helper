@@ -1,44 +1,58 @@
-<div class="character-panel">
-  <mat-form-field appearance="outline">
-    <mat-label>Level</mat-label>
-    <input
-      matInput
-      type="number"
-      min="1"
-      max="99"
-      [value]="level()"
-      (input)="onLevelInput($event)"
-      data-testid="level-input"
-    />
-  </mat-form-field>
+<tza-panel title="Character">
+  <div class="stat-rows">
+    <div class="stat-row">
+      <span class="stat-label">Level</span>
+      <input
+        class="stat-input"
+        type="number"
+        min="1"
+        max="99"
+        [value]="level()"
+        (input)="onLevelInput($event)"
+        data-testid="level-input"
+      />
+    </div>
 
-  <mat-form-field appearance="outline">
-    <mat-label>Magic</mat-label>
-    <input
-      matInput
-      type="number"
-      min="1"
-      max="99"
-      [value]="magic()"
-      (input)="onMagicInput($event)"
-      data-testid="magic-input"
-    />
-  </mat-form-field>
+    <div class="stat-row">
+      <span class="stat-label">Magic</span>
+      <input
+        class="stat-input"
+        type="number"
+        min="1"
+        max="99"
+        [value]="magic()"
+        (input)="onMagicInput($event)"
+        data-testid="magic-input"
+      />
+    </div>
 
-  <mat-form-field appearance="outline">
-    <mat-label>Spell</mat-label>
-    <mat-select [value]="spell()" (valueChange)="onSpellChange($event)" data-testid="spell-select">
-      @for (s of spells; track s) {
-        <mat-option [value]="s">{{ s }}</mat-option>
-      }
-    </mat-select>
-  </mat-form-field>
+    <div class="stat-row">
+      <span class="stat-label">Spell</span>
+      <select
+        class="stat-select"
+        [value]="spell()"
+        (change)="onSpellSelectChange($event)"
+        data-testid="spell-select"
+      >
+        @for (s of spells; track s) {
+          <option [value]="s">{{ s }}</option>
+        }
+      </select>
+    </div>
 
-  <mat-slide-toggle
-    [checked]="serenity()"
-    (change)="onSerenityChange($event.checked)"
-    data-testid="serenity-toggle"
-  >
-    Serenity
-  </mat-slide-toggle>
-</div>
+    <div class="stat-row">
+      <span class="stat-label">Serenity</span>
+      <button
+        class="dot-toggle"
+        [class.active]="serenity()"
+        (click)="onSerenityChange(!serenity())"
+        type="button"
+        [attr.aria-pressed]="serenity()"
+        aria-label="Serenity"
+        data-testid="serenity-toggle"
+      >
+        <span class="dot"></span>
+      </button>
+    </div>
+  </div>
+</tza-panel>

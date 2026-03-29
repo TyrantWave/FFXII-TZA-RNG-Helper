@@ -6,18 +6,16 @@ import {
   model,
   output,
 } from '@angular/core';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { FormsModule } from '@angular/forms';
+import { TzaPanel } from '../tza-panel/tza-panel';
 import { DEFAULT_SEED, type SearchStatus } from '../../services/wasm.service';
 
 const VALUE_COUNT = 5;
 
 @Component({
   selector: 'tza-controls-panel',
-  imports: [MatFormFieldModule, MatInputModule, MatButtonModule, MatProgressBarModule, FormsModule],
+  imports: [MatButtonModule, MatProgressBarModule, TzaPanel],
   templateUrl: './controls-panel.html',
   styleUrl: './controls-panel.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

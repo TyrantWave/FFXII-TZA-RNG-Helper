@@ -8,7 +8,6 @@ import {
   untracked,
 } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
-import { MatDividerModule } from '@angular/material/divider';
 import {
   WasmService,
   DEFAULT_SEED,
@@ -24,7 +23,7 @@ import { ValuesTable } from './components/values-table/values-table';
 
 @Component({
   selector: 'tza-root',
-  imports: [MatDividerModule, CharacterPanel, ControlsPanel, ValuesTable],
+  imports: [CharacterPanel, ControlsPanel, ValuesTable],
   templateUrl: './app.html',
   styleUrl: './app.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

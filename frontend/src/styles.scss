@@ -1,44 +1,122 @@
-// Include theming for Angular Material with `mat.theme()`.
-// This Sass mixin will define CSS variables that are used for styling Angular Material
-// components according to the Material 3 design spec.
-// Learn more about theming and how to use it for your application's
-// custom components at https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
 
+// - Design Tokens
+:root {
+  // Palette
+  --tza-bg: #111417;
+  --tza-surface: #1a1f24;
+  --tza-surface-raised: #21282f;
+  --tza-surface-high: #2a333c;
+  --tza-accent: #e9c349;
+  --tza-accent-dim: rgba(233, 195, 73, 0.25);
+  --tza-secondary: #b5c8df;
+  --tza-border: rgba(181, 200, 223, 0.15);
+  --tza-border-dim: rgba(181, 200, 223, 0.08);
+  --tza-selected-bg: rgba(30, 70, 130, 0.55);
+  --tza-selected-border: rgba(90, 158, 200, 0.5);
+  --tza-next-bg: rgba(233, 195, 73, 0.07);
+  --tza-text-primary: #e2e8ef;
+  --tza-text-secondary: #b5c8df;
+  --tza-text-accent: #e9c349;
+  --tza-text-on-selected: #e8f4ff;
+  --tza-text-disabled: rgba(181, 200, 223, 0.25);
+  --tza-status-found: rgba(40, 110, 65, 0.7);
+  --tza-status-error: rgba(130, 40, 40, 0.7);
+  --tza-status-searching: rgba(30, 65, 100, 0.7);
+
+  // Typography
+  --tza-font-ui: 'Work Sans', sans-serif;
+  --tza-font-display: 'Space Grotesk', sans-serif;
+  --tza-label-spacing: 0.04em;
+  --tza-header-spacing: 0.08em;
+
+  // Geometry
+  --tza-panel-padding: 16px;
+  --tza-row-height: 48px;
+  --tza-border-radius: 8px;
+  --tza-accent-bar: 3px;
+}
+
+// - Material Theme (dark)
 html {
   height: 100%;
+
   @include mat.theme(
     (
       color: (
-        primary: mat.$azure-palette,
+        primary: mat.$orange-palette,
         tertiary: mat.$blue-palette,
+        theme-type: dark,
       ),
       typography: Roboto,
-      density: 0,
+      density: -1,
     )
   );
 }
 
-app-root {
+tza-root {
   display: block;
   height: 100%;
 }
 
 body {
-  // Default the application to a light color theme. This can be changed to
-  // `dark` to enable the dark color theme, or to `light dark` to defer to the
-  // user's system settings.
-  color-scheme: light;
-
-  // Set a default background, font and text colors for the application using
-  // Angular Material's system-level CSS variables. Learn more about these
-  // variables at https://material.angular.dev/guide/system-variables
-  background-color: var(--mat-sys-surface);
-  color: var(--mat-sys-on-surface);
-  font: var(--mat-sys-body-medium);
-
-  // Reset the user agent margin.
+  color-scheme: dark;
+  background-color: var(--tza-bg);
+  background-image:
+    radial-gradient(ellipse 70% 55% at 12% 38%, rgba(15, 30, 80, 0.45) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 65% at 88% 65%, rgba(10, 22, 60, 0.3) 0%, transparent 65%);
+  color: var(--tza-text-primary);
+  font-family: var(--tza-font-ui);
   margin: 0;
   height: 100%;
 }
-/* You can add global styles to this file, and also import other style files */
+
+// - Material component overrides
+
+// Pill buttons — secondary-container base with gold left indicator
+.mat-mdc-unelevated-button {
+  --mdc-filled-button-container-color: rgba(181, 200, 223, 0.08);
+  --mdc-filled-button-label-text-color: var(--tza-secondary);
+  --mdc-filled-button-label-text-font: var(--tza-font-ui);
+  font-family: var(--tza-font-ui) !important;
+  border: none !important;
+  border-radius: 9999px !important;
+  letter-spacing: var(--tza-label-spacing);
+  text-transform: uppercase;
+  font-size: 0.74rem !important;
+  box-shadow: inset 3px 0 0 var(--tza-accent) !important;
+
+  &:hover {
+    --mdc-filled-button-container-color: rgba(181, 200, 223, 0.15);
+  }
+
+  &:focus-visible {
+    box-shadow: inset 3px 0 0 var(--tza-accent), 0 0 0 2px rgba(233, 195, 73, 0.4) !important;
+    outline: none;
+  }
+}
+
+// Progress bar — gold fill on dark track
+mat-progress-bar {
+  --mdc-linear-progress-active-indicator-color: var(--tza-accent);
+  --mdc-linear-progress-track-color: var(--tza-surface-raised);
+}
+
+// - Global polish
+
+// Remove number input spinners
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+// Suppress default focus ring — components handle their own focus states
+*:focus-visible {
+  outline: none;
+}

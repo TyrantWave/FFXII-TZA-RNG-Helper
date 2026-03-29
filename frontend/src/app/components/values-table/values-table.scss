@@ -6,54 +6,97 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  background: var(--tza-bg);
 }
 
-.table-header,
+.table-header {
+  display: grid;
+  grid-template-columns: 100px 1fr 100px;
+  align-items: center;
+  padding: 0 16px;
+  height: 40px;
+  box-sizing: border-box;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--tza-surface);
+
+  span {
+    font-family: var(--tza-font-display);
+    font-size: 0.58rem;
+    font-weight: 600;
+    letter-spacing: var(--tza-header-spacing);
+    text-transform: uppercase;
+    color: var(--tza-text-accent);
+  }
+}
+
 .table-row {
   display: grid;
   grid-template-columns: 100px 1fr 100px;
   align-items: center;
   padding: 0 16px;
-  height: 48px;
+  height: var(--tza-row-height);
   box-sizing: border-box;
-}
-
-.table-header {
-  font-weight: 600;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-  position: sticky;
-  top: 0;
-  background: inherit;
-  z-index: 1;
-}
-
-.table-row {
   cursor: pointer;
   transition:
-    background 0.1s ease,
-    opacity 0.1s ease;
+    background 0.08s ease,
+    opacity 0.08s ease;
+  border-left: var(--tza-accent-bar) solid transparent;
+  color: var(--tza-text-primary);
+  font-size: 0.875rem;
 
   &:nth-child(even) {
-    background: rgba(0, 0, 0, 0.04);
+    background: var(--tza-surface-raised);
+  }
+
+  &:nth-child(odd) {
+    background: var(--tza-surface);
+  }
+
+  &:hover:not(.past) {
+    background: rgba(233, 195, 73, 0.05);
   }
 
   &.past {
-    opacity: 0.45;
+    opacity: 0.3;
+    color: var(--tza-text-disabled);
   }
 
   &.next {
-    background: color-mix(in srgb, #4caf50 18%, transparent);
-    border-left: 3px solid #4caf50;
-    font-weight: 600;
+    background: var(--tza-next-bg);
+    border-left-color: var(--tza-accent);
+    color: var(--tza-text-accent);
+    font-weight: 500;
     opacity: 1;
   }
 
   &.highlighted {
-    border-left: 3px solid var(--mat-sys-primary);
+    background: var(--tza-selected-bg);
+    border-left-color: var(--tza-selected-border);
+    color: var(--tza-text-on-selected);
+    opacity: 1;
   }
 
-  // .past.highlighted — muted opacity (from .past) + primary left border (from .highlighted)
-  // No additional override needed; class combination handles it.
+  &.past.highlighted {
+    opacity: 0.5;
+  }
+
+  .col-position {
+    color: var(--tza-text-secondary);
+    font-size: 0.75rem;
+  }
+}
+
+.table-header,
+.table-row {
+  .col-spell {
+    text-align: center;
+  }
+
+  .col-chest {
+    text-align: right;
+  }
 }
 
 .viewport {
