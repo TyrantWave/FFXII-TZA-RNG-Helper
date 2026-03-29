@@ -1,7 +1,7 @@
 <div class="layout">
   <aside class="controls-column">
     <tza-character-panel [(character)]="character" />
-    <mat-divider />
+    <div class="column-divider"></div>
     <tza-controls-panel
       [searchStatus]="wasm.searchStatus()"
       [elapsedSeconds]="wasm.elapsedSeconds()"
@@ -12,6 +12,7 @@
       (findPosition)="onFindPosition($event)"
     />
   </aside>
+  <div class="column-separator" aria-hidden="true"></div>
   <main class="table-column">
     <tza-values-table
       [values]="wasm.values()"

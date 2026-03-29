@@ -1,28 +1,33 @@
-<div class="controls-panel">
-  <mat-form-field appearance="outline">
-    <mat-label>Seed</mat-label>
-    <input
-      matInput
-      type="number"
-      [value]="browseSeed()"
-      (input)="onSeedInput($event)"
-      data-testid="seed-input"
-    />
-  </mat-form-field>
+<tza-panel title="RNG Search">
+  <div class="settings-section">
+    <div class="setting-row">
+      <span class="setting-label">Seed</span>
+      <input
+        class="setting-input"
+        type="number"
+        [value]="browseSeed()"
+        (input)="onSeedInput($event)"
+        data-testid="seed-input"
+      />
+    </div>
+  </div>
 
-  <div class="observed-values">
-    @for (i of indices; track i) {
-      <mat-form-field appearance="outline">
-        <mat-label>Heal {{ i + 1 }}</mat-label>
-        <input
-          matInput
-          type="number"
-          [value]="observedValues()[i] ?? ''"
-          (input)="setValue(i, $event)"
-          [attr.data-testid]="'heal-' + i"
-        />
-      </mat-form-field>
-    }
+  <div class="settings-section">
+    <div class="section-caption">Observed Heals</div>
+    <div class="observed-values">
+      @for (i of indices; track i) {
+        <div class="setting-row compact">
+          <span class="setting-label">Heal {{ i + 1 }}</span>
+          <input
+            class="setting-input"
+            type="number"
+            [value]="observedValues()[i] ?? ''"
+            (input)="setValue(i, $event)"
+            [attr.data-testid]="'heal-' + i"
+          />
+        </div>
+      }
+    </div>
   </div>
 
   <div class="action-row">
@@ -50,4 +55,4 @@
       }
     </div>
   }
-</div>
+</tza-panel>

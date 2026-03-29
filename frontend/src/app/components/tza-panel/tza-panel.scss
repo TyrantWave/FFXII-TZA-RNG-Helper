@@ -1,0 +1,33 @@
+:host {
+  display: block;
+}
+
+.panel-frame {
+  background: rgba(26, 31, 36, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: var(--tza-border-radius);
+  overflow: hidden;
+
+  &.bordered {
+    border: 1px solid var(--tza-border);
+  }
+}
+
+.panel-header {
+  padding: 12px var(--tza-panel-padding) 10px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.panel-title {
+  font-family: var(--tza-font-display);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: var(--tza-header-spacing);
+  text-transform: uppercase;
+  color: var(--tza-text-accent);
+}
+
+.panel-body {
+  padding: var(--tza-panel-padding);
+}
