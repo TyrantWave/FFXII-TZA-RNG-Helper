@@ -47,7 +47,7 @@ describe('ValuesTable', () => {
     const viewport = fixture.debugElement.query(By.directive(CdkVirtualScrollViewport))
       ?.componentInstance as CdkVirtualScrollViewport;
     if (viewport) {
-      scrollSpy = vi.spyOn(viewport, 'scrollToIndex').mockImplementation(() => {});
+      scrollSpy = vi.spyOn(viewport, 'scrollToIndex').mockReturnValue(undefined);
     }
   });
 

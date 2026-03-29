@@ -130,7 +130,7 @@ describe('App — pivotPosition is not reset by push() after a row click', () =>
     fixture.detectChanges();
     const viewport = fixture.debugElement.query(By.directive(CdkVirtualScrollViewport))
       ?.componentInstance as CdkVirtualScrollViewport | undefined;
-    if (viewport) vi.spyOn(viewport, 'scrollToIndex').mockImplementation(() => {});
+    if (viewport) vi.spyOn(viewport, 'scrollToIndex').mockReturnValue(undefined);
 
     // Simulate lastSearchCount = 2 (private signal, accessed for test only)
     (app as unknown as { lastSearchCount: ReturnType<typeof signal<number>> })[

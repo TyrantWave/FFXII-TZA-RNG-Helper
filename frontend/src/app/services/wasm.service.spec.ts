@@ -173,11 +173,11 @@ describe('WasmService', () => {
   // ── findSeed ──────────────────────────────────────────────────────────────
 
   describe('findSeed', () => {
-    type MockWorker = {
+    interface MockWorker {
       postMessage: ReturnType<typeof vi.fn>;
-      onmessage: ((e: { data: any }) => void) | null;
+      onmessage: ((e: { data: unknown }) => void) | null;
       terminate: ReturnType<typeof vi.fn>;
-    };
+    }
     let mockWorkers: MockWorker[];
 
     beforeEach(() => {
@@ -287,11 +287,11 @@ describe('WasmService', () => {
   // ── elapsedSeconds ────────────────────────────────────────────────────────
 
   describe('elapsedSeconds', () => {
-    type MockWorker = {
+    interface MockWorker {
       postMessage: ReturnType<typeof vi.fn>;
-      onmessage: ((e: { data: any }) => void) | null;
+      onmessage: ((e: { data: unknown }) => void) | null;
       terminate: ReturnType<typeof vi.fn>;
-    };
+    }
     let mockWorkers: MockWorker[];
 
     beforeEach(() => {

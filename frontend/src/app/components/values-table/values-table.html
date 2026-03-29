@@ -10,6 +10,8 @@
       class="table-row"
       [class]="rowClassMap()(row.position)"
       (click)="rowClick.emit(row.position)"
+      (keydown.enter)="rowClick.emit(row.position)"
+      tabindex="0"
       data-testid="values-row"
     >
       <span class="col-position">{{ row.position }}</span>
