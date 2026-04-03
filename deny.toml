@@ -1,0 +1,28 @@
+# cargo-deny 0.19 policy
+# Run manually: cargo deny check
+# Docs: https://embarkstudios.github.io/cargo-deny/
+
+[advisories]
+db-urls = ["https://github.com/rustsec/advisory-db"]
+# vulnerability/notice/severity-threshold removed in 0.16 — all advisories
+# now fail automatically with no configuration option.
+yanked = "deny"
+unmaintained = "none"
+
+[licenses]
+# Deny-by-default: only licenses in this list are permitted.
+# If `cargo deny check licenses` fails with an unexpected license, add it here.
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Unicode-3.0",
+]
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

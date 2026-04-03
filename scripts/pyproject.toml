@@ -1,0 +1,8 @@
+[project]
+name = "ffxii-tza-scripts"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "pytesseract>=0.3.10",
+    "Pillow>=10.0",
+]

@@ -17,15 +17,9 @@ pub struct Chest {
     pub gil_pct: u8,
     pub gil_max: u32,
     pub items: Vec<String>,
-    pub items_da: Option<Vec<DaItem>>,
+    pub items_da: Option<Vec<String>>,
     pub tza_note: Option<String>,
     pub position: Option<Position>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct DaItem {
-    pub name: String,
-    pub pct: u8,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -66,16 +60,6 @@ pub fn validate(sub_area: &SubArea) -> Vec<ValidationError> {
                 field: format!("chests[{i}].items"),
                 message: format!("must have 1–2 entries, got {}", chest.items.len()),
             });
-        }
-
-        if let Some(da_items) = &chest.items_da {
-            let sum: u32 = da_items.iter().map(|d| d.pct as u32).sum();
-            if sum != 100 {
-                errors.push(ValidationError {
-                    field: format!("chests[{i}].items_da"),
-                    message: format!("pct values must sum to 100, got {sum}"),
-                });
-            }
         }
 
         if let Some(pos) = &chest.position {
@@ -149,16 +133,7 @@ mod tests {
             Case {
                 name: "valid_full",
                 sub_area: minimal_sub_area(vec![Chest {
-                    items_da: Some(vec![
-                        DaItem {
-                            name: "Potion".to_string(),
-                            pct: 95,
-                        },
-                        DaItem {
-                            name: "Hi-Potion".to_string(),
-                            pct: 5,
-                        },
-                    ]),
+                    items_da: Some(vec!["Potion".to_string(), "Hi-Potion".to_string()]),
                     position: Some(Position { x: 45.2, y: 32.1 }),
                     ..minimal_chest()
                 }]),
@@ -197,21 +172,15 @@ mod tests {
                 expected_fields: &["chests[0].items"],
             },
             Case {
-                name: "items_da_wrong_sum",
+                name: "items_da_valid_strings",
                 sub_area: minimal_sub_area(vec![Chest {
                     items_da: Some(vec![
-                        DaItem {
-                            name: "Potion".to_string(),
-                            pct: 60,
-                        },
-                        DaItem {
-                            name: "Hi-Potion".to_string(),
-                            pct: 60,
-                        },
+                        "Knot of Rust".to_string(),
+                        "Meteorite (B)".to_string(),
                     ]),
                     ..minimal_chest()
                 }]),
-                expected_fields: &["chests[0].items_da"],
+                expected_fields: &[],
             },
             Case {
                 name: "position_x_out_of_range",

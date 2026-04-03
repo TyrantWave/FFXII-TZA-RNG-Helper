@@ -1,0 +1,8 @@
+# Two-week delay policy: uv will refuse to resolve package versions published
+# after this date. This protects against newly-published malicious releases.
+#
+# When intentionally upgrading dependencies:
+#   1. Advance this date to (today - 14 days)
+#   2. Run: uv lock --upgrade
+#   3. Review the diff in uv.lock before committing
+exclude-newer = "2026-03-20T00:00:00Z"
