@@ -1,5 +1,6 @@
-use ffxii_tza_rng::{character, rng_helper, spell};
+use ffxii_tza_rng::{character, map_data, rng_helper, spell};
 use std::io::Write;
+use std::path::Path;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -17,9 +18,80 @@ fn usage(bin: &str) -> ! {
     eprintln!(
         "  {bin} find-position <seed> <level> <magic> <spell> [--no-serenity] <val1> [val2 ...]"
     );
+    eprintln!("  {bin} validate-maps <path>");
     eprintln!();
     eprintln!("Spells: Cure, Cura, Curaga, Curaja");
     std::process::exit(1);
+}
+
+fn collect_json_files(dir: &Path, out: &mut Vec<std::path::PathBuf>) {
+    let entries = match std::fs::read_dir(dir) {
+        Ok(e) => e,
+        Err(err) => {
+            eprintln!("Warning: cannot read directory {}: {err}", dir.display());
+            return;
+        }
+    };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            collect_json_files(&path, out);
+        } else if path.extension().and_then(|e| e.to_str()) == Some("json") {
+            out.push(path);
+        }
+    }
+}
+
+fn cmd_validate_maps(args: &[String]) {
+    let path = match args.first() {
+        Some(p) => Path::new(p),
+        None => {
+            eprintln!("validate-maps requires <path>");
+            std::process::exit(1);
+        }
+    };
+
+    let mut files = Vec::new();
+    collect_json_files(path, &mut files);
+    files.sort();
+
+    let mut error_count = 0usize;
+
+    for file in &files {
+        let raw = match std::fs::read_to_string(file) {
+            Ok(s) => s,
+            Err(err) => {
+                eprintln!("ERROR {}: read failed: {err}", file.display());
+                error_count += 1;
+                continue;
+            }
+        };
+
+        let sub_area = match serde_json::from_str::<map_data::SubArea>(&raw) {
+            Ok(s) => s,
+            Err(err) => {
+                eprintln!("ERROR {}: parse failed: {err}", file.display());
+                error_count += 1;
+                continue;
+            }
+        };
+
+        let errors = map_data::validate(&sub_area);
+        if errors.is_empty() {
+            println!("  OK  {}", file.display());
+        } else {
+            eprintln!("ERROR {}:", file.display());
+            for e in &errors {
+                eprintln!("       {}: {}", e.field, e.message);
+            }
+            error_count += errors.len();
+        }
+    }
+
+    println!("{} files checked, {} errors", files.len(), error_count);
+    if error_count > 0 {
+        std::process::exit(1);
+    }
 }
 
 /// Splits a tail of args into (serenity, values), stripping --no-serenity.
@@ -188,6 +260,7 @@ fn main() {
     match args[1].as_str() {
         "find-seed" => cmd_find_seed(&args[2..]),
         "find-position" => cmd_find_position(&args[2..]),
+        "validate-maps" => cmd_validate_maps(&args[2..]),
         _ => usage(&args[0]),
     }
 }

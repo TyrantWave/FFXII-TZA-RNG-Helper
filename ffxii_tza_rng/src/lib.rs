@@ -1,4 +1,5 @@
 pub mod character;
+pub mod map_data;
 pub mod rng;
 pub mod rng_helper;
 pub mod spell;

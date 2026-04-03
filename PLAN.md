@@ -10,6 +10,7 @@
 | 4 | Real-game validation & test coverage | ✅ Done |
 | 5 | Optimisation | ✅ Done |
 | 6 | UX feedback improvements | ✅ Done |
+| 7 | Map viewer + chest table + RNG integration | 🔲 Next |
 
 ---
 
@@ -146,7 +147,7 @@ Combined: **~30% faster seed search** single-threaded. Extrapolated: full 10M Sw
 
 ---
 
-## Stage 6 — UX Feedback Improvements 🔲
+## Stage 6 — UX Feedback Improvements ✅
 
 ### CLI: elapsed timer
 
@@ -178,6 +179,61 @@ TDD throughout (fake timers for elapsed, state tests for card, viewport mock for
 - [x] CLI output includes chest % alongside heal values
 - [x] URL query param: `?heals=val1,val2,...` — pre-fills inputs and auto-triggers find-seed on load
 
+---
+
+## Stage 7 — Map Viewer + Chest Table + RNG Integration 🔲
+
+A dedicated map browser route showing annotated area maps alongside a chest data table, with bidirectional interaction and RNG targeting.
+
+### Source material
+
+~48 area folders in `FFXII -IZJS- Maps/` (Tirpitz Luminare, freely distributable). Each folder contains numbered sub-area JPGs (annotated screenshots) and a README.
+
+Chest data format baked into the images:
+```
+ID | respawn | spawn% | gil% | ~gil_max | item1            | item2
+                  with Diamond Armlet | DA_item1 (95%)   | DA_item2 (5%)
+```
+
+**Caveat:** Data is IZJS (PS2 International), not TZA — largely compatible but some chests/items differ.
+
+---
+
+### Phase 1 — Image browser + chest table
+
+- [ ] New route `/map` (or lazy-loaded section in the existing app)
+- [ ] Area selector: dropdown or sidebar listing all ~48 zones
+- [ ] Sub-area selector: thumbnail strip or prev/next navigation for numbered sub-area JPGs
+- [ ] Map display: image rendered at full width, horizontally scrollable if needed
+- [ ] Chest table: per sub-area table with columns `ID | respawn | spawn% | gil% | items (no DA) | items (DA)`
+- [ ] Chest data transcribed to JSON (`assets/maps/<area>/<sub-area>.json`) — one file per sub-area
+- [ ] Bidirectional highlight:
+  - Click a chest marker on the map → highlight the corresponding table row and scroll it into view
+  - Click a table row → highlight the chest marker on the map
+  - Chest markers are SVG overlays positioned by (x, y) percentage coordinates stored in the JSON
+
+**Open questions / decisions needed:**
+1. Route placement: new top-level route with a nav tab, or a panel alongside the existing RNG view?
+2. Chest marker positioning: manual (x,y) per chest in the JSON, or parsed from image metadata?
+3. Data priority: transcribe all 48 zones upfront, or start with a handful of high-traffic areas (e.g. Golmore Jungle, Henne Mines)?
+4. IZJS vs TZA discrepancies: flag known differences in the JSON, or treat IZJS as authoritative for now?
+
+---
+
+### Phase 2 — RNG targeting
+
+- [ ] "Set as target" action on each chest row: stores `{ chestId, desiredOutcome }` in a service signal
+- [ ] `ValuesTable` scans the current RNG sequence and marks the **next position** where the target chest produces the desired outcome (spawn + item roll both pass)
+- [ ] Marked row is visually distinct from the existing heal-match highlight; auto-scrolls into view
+- [ ] Target badge shown in the map/table UI indicating which chest is currently targeted and what outcome is sought
+- [ ] Clear target button
+
+**Open questions:**
+1. What counts as "desired outcome"? Options: (a) user picks spawn + item tier explicitly, (b) always "best possible" (rare item, no DA), (c) configurable threshold (e.g. spawn% ≥ 50)?
+2. Does the RNG advance by 1 per chest roll, or are multiple draws consumed? Need to verify for spawn roll + item roll separately.
+
+---
+
 ## Ideas Backlog
 
 > Future ideas go here before they're promoted to a stage.
@@ -185,29 +241,8 @@ TDD throughout (fake timers for elapsed, state tests for card, viewport mock for
 - Auto-advance table on next cast (track position with a button)
 - Chest % highlighting for target values
 - Export/share current seed + position as a URL
-- Angular ESLint (`@angular-eslint/eslint-plugin`) — standard linting for Angular projects; configure rules and add `ng lint` step to CI
-
-### Map browser
-
-A browsable map viewer showing chest locations and loot tables per zone.
-
-Source material: a set of ~48 area folders in `FFXII -IZJS- Maps/` (Tirpitz Luminare, freely distributable). Each folder contains numbered sub-area JPGs (game screenshots with chest locations annotated) and a README explaining the format.
-
-Chest data format (embedded in images as text overlays):
-```
-ID | respawn | spawn% | gil% | ~gil_max | item1            | item2
-                  with Diamond Armlet | DA_item1 (95%)   | DA_item2 (5%)
-```
-
-**Caveats:**
-- Data is IZJS (PS2 International), not TZA — largely compatible but some chests/items differ in TZA
-- Chest data is **baked into the images**, not machine-readable — full interactivity requires transcribing all chest tables to JSON (significant effort)
-- Phase 1 could simply display the images as a navigable reference, with no data layer
-
-**Phase 1 (image browser):** area → sub-area navigation, display the existing JPGs as-is. Low effort, immediately useful.
-
-**Phase 2 (data layer):** transcribe chest data to JSON, enable filtering and RNG integration.
+- ~~Angular ESLint (`@angular-eslint/eslint-plugin`) — standard linting for Angular projects; configure rules and add `ng lint` step to CI~~ ✅ Done (ESLint + Prettier added, `ng lint` in CI)
 
 ### Cast assistance for a target chest
 
-Given a target chest and its spawn/item probabilities, show which upcoming RNG position produces the desired outcome (e.g. 75%+ for a rare item) and how many casts are needed to burn to reach it. Depends on the Phase 2 data layer above.
+Given a target chest and its spawn/item probabilities, show which upcoming RNG position produces the desired outcome (e.g. 75%+ for a rare item) and how many casts are needed to burn to reach it. Superseded by Stage 7.
