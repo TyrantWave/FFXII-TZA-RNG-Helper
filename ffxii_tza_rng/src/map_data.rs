@@ -55,7 +55,8 @@ pub fn validate(sub_area: &SubArea) -> Vec<ValidationError> {
             });
         }
 
-        if chest.items.is_empty() || chest.items.len() > 2 {
+        let items_empty_ok = chest.gil_pct == 100;
+        if (chest.items.is_empty() && !items_empty_ok) || chest.items.len() > 2 {
             errors.push(ValidationError {
                 field: format!("chests[{i}].items"),
                 message: format!("must have 1–2 entries, got {}", chest.items.len()),
@@ -162,6 +163,15 @@ mod tests {
                     ..minimal_chest()
                 }]),
                 expected_fields: &["chests[0].items"],
+            },
+            Case {
+                name: "items_empty_gil_100_ok",
+                sub_area: minimal_sub_area(vec![Chest {
+                    gil_pct: 100,
+                    items: vec![],
+                    ..minimal_chest()
+                }]),
+                expected_fields: &[],
             },
             Case {
                 name: "items_too_many",
