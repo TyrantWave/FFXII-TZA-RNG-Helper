@@ -13,6 +13,7 @@ yarn-error.log
 
 # IDEs and editors
 .idea/
+.vscode/
 .project
 .classpath
 .c9/
@@ -42,3 +43,6 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Generated map data (regenerate with scripts/extract_guide.py)
+/public/assets/maps/
