@@ -7,7 +7,6 @@ db-urls = ["https://github.com/rustsec/advisory-db"]
 # vulnerability/notice/severity-threshold removed in 0.16 — all advisories
 # now fail automatically with no configuration option.
 yanked = "deny"
-unmaintained = "none"
 
 [licenses]
 # Deny-by-default: only licenses in this list are permitted.
