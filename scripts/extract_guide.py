@@ -340,15 +340,6 @@ def parse_chest_row(m, chest_id):
 
     raw_a = m.group(6).strip()
     raw_b = m.group(7).strip()
-    items = []
-    if raw_a != "-":
-        items.append(translate(raw_a))
-    if raw_b != "-" and raw_b != raw_a:
-        items.append(translate(raw_b))
-    elif raw_b != "-" and raw_b == raw_a:
-        items.append(translate(raw_b))  # identical items — keep one? No, keep both for schema
-
-    # Rebuild: keep both items even if identical (schema allows 1-2)
     items = [translate(x) for x in [raw_a, raw_b] if x != "-"]
 
     return {
@@ -594,6 +585,26 @@ def main():
 
     if not args.dry_run:
         print(f"\nProcessed {processed}, skipped {skipped}")
+
+    # Write index.json (only on full runs; skip when --area filter is active)
+    if not args.dry_run and not args.area:
+        area_index: dict[str, dict] = {}
+        for folder_name, sub_area_name, zone_display, _ in entries:
+            area_slug = slugify(folder_name)
+            sub_slug = slugify(sub_area_name)
+            if area_slug not in area_index:
+                area_index[area_slug] = {"slug": area_slug, "name": zone_display, "sub_areas": []}
+            # Avoid duplicates (shouldn't happen, but guard it)
+            if not any(s["slug"] == sub_slug for s in area_index[area_slug]["sub_areas"]):
+                area_index[area_slug]["sub_areas"].append({"slug": sub_slug, "name": sub_area_name})
+
+        index_data = sorted(area_index.values(), key=lambda a: a["slug"])
+        index_path = os.path.join(output_dir, "index.json")
+        os.makedirs(output_dir, exist_ok=True)
+        with open(index_path, "w", encoding="utf-8") as f:
+            json.dump(index_data, f, indent=2, ensure_ascii=False)
+            f.write("\n")
+        print(f"Wrote index: {index_path}  ({len(index_data)} areas)")
 
 
 if __name__ == "__main__":

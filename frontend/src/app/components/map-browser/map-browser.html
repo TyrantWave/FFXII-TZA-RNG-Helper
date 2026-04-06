@@ -1,0 +1,103 @@
+<tza-panel title="Map Browser">
+  <div class="selectors">
+    <div class="setting-row">
+      <span class="setting-label">Area</span>
+      <select
+        #areaSelect
+        class="setting-select"
+        [value]="selectedArea() ?? ''"
+        (change)="onAreaChange(areaSelect.value)"
+        data-testid="area-select"
+      >
+        <option value="">— select —</option>
+        @for (area of areas(); track area.slug) {
+          <option [value]="area.slug">{{ area.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="setting-row">
+      <span class="setting-label">Sub-area</span>
+      <select
+        #subAreaSelect
+        class="setting-select"
+        [value]="selectedSubArea() ?? ''"
+        (change)="onSubAreaChange(subAreaSelect.value)"
+        [disabled]="!selectedArea()"
+        data-testid="sub-area-select"
+      >
+        <option value="">— select —</option>
+        @for (sub of subAreas(); track sub.slug) {
+          <option [value]="sub.slug">{{ sub.name }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  @if (mapData.isLoading()) {
+    <div class="state-row" data-testid="loading-state">Loading…</div>
+  } @else if (mapData.error()) {
+    <div class="state-row error" data-testid="error-state">Failed to load chest data.</div>
+  } @else if (mapData.value(); as data) {
+    @if (imageUrl()) {
+      <div class="map-image-container" data-testid="map-image-container">
+        <img
+          class="map-image"
+          [src]="imageUrl()!"
+          [alt]="data.sub_area + ' map'"
+          data-testid="map-image"
+        />
+        <svg class="map-overlay" aria-hidden="true">
+          @for (chest of chestsWithPosition(); track chest.id) {
+            <g
+              class="chest-marker"
+              [attr.transform]="'translate(' + chest.position.x + '%,' + chest.position.y + '%)'"
+              data-testid="chest-marker"
+            >
+              <circle r="10" class="marker-circle" />
+              <text class="marker-label" dy="4">{{ chest.id }}</text>
+            </g>
+          }
+        </svg>
+      </div>
+    }
+    <div class="chest-table" data-testid="chest-table">
+      <div
+        class="chest-header"
+        [style.grid-template-columns]="gridCols()"
+      >
+        <span class="col-id">#</span>
+        <span class="col-pct">Spawn</span>
+        <span class="col-pct">Gil</span>
+        <span class="col-items">Items</span>
+        @if (hasDA()) {
+          <span class="col-items">DA Items</span>
+        }
+        @if (hasTzaNote()) {
+          <span class="col-note">TZA</span>
+        }
+      </div>
+      @for (chest of data.chests; track chest.id) {
+        <div
+          class="chest-row"
+          [class.no-respawn]="!chest.respawn"
+          [style.grid-template-columns]="gridCols()"
+          data-testid="chest-row"
+        >
+          <span class="col-id">{{ chest.id }}</span>
+          <span class="col-pct">{{ chest.spawn_pct }}%</span>
+          <span class="col-pct">{{ chest.gil_pct }}%</span>
+          <span class="col-items">{{ chest.items.join(' / ') }}</span>
+          @if (hasDA()) {
+            <span class="col-items">{{ chest.items_da?.join(' / ') ?? '—' }}</span>
+          }
+          @if (hasTzaNote()) {
+            <span class="col-note">{{ chest.tza_note ?? '' }}</span>
+          }
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="state-row muted" data-testid="empty-state">Select an area and sub-area to view chest data.</div>
+  }
+</tza-panel>

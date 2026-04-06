@@ -10,10 +10,11 @@ import {
 } from '@angular/core';
 import { CdkVirtualScrollViewport, ScrollingModule } from '@angular/cdk/scrolling';
 import type { ValueLens } from '../../services/wasm.service';
+import { TzaPanel } from '../tza-panel/tza-panel';
 
 @Component({
   selector: 'tza-values-table',
-  imports: [ScrollingModule],
+  imports: [ScrollingModule, TzaPanel],
   templateUrl: './values-table.html',
   styleUrl: './values-table.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

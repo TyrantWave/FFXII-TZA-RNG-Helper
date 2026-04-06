@@ -1,5 +1,5 @@
-<div class="table-container">
-  <div class="table-header">
+<tza-panel [showBorder]="true" [fillHeight]="true" [customHeader]="true">
+  <div panel-header class="col-headers">
     <span class="col-position">Position</span>
     <span class="col-spell">Heal</span>
     <span class="col-chest">Chest %</span>
@@ -19,4 +19,4 @@
       <span class="col-chest">{{ row.chest }}</span>
     </div>
   </cdk-virtual-scroll-viewport>
-</div>
+</tza-panel>

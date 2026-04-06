@@ -20,10 +20,11 @@ import {
 import { DEFAULT_CHARACTER, CharacterPanel } from './components/character-panel/character-panel';
 import { ControlsPanel } from './components/controls-panel/controls-panel';
 import { ValuesTable } from './components/values-table/values-table';
+import { MapBrowser } from './components/map-browser/map-browser';
 
 @Component({
   selector: 'tza-root',
-  imports: [CharacterPanel, ControlsPanel, ValuesTable],
+  imports: [CharacterPanel, ControlsPanel, ValuesTable, MapBrowser],
   templateUrl: './app.html',
   styleUrl: './app.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

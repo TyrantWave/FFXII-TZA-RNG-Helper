@@ -1,8 +1,11 @@
-<div class="panel-frame" [class.bordered]="showBorder()">
-  <div class="panel-header">
-    <span class="panel-title">{{ title() }}</span>
+<div class="panel-frame" [class.bordered]="showBorder()" [class.fill-height]="fillHeight()">
+  <div class="panel-header" [class.custom-header]="customHeader()">
+    @if (title()) {
+      <span class="panel-title">{{ title() }}</span>
+    }
+    <ng-content select="[panel-header]" />
   </div>
-<div class="panel-body">
+  <div class="panel-body">
     <ng-content />
   </div>
 </div>

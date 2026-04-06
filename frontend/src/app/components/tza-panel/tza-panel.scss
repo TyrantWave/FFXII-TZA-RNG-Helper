@@ -2,6 +2,10 @@
   display: block;
 }
 
+:host:has(.panel-frame.fill-height) {
+  height: 100%;
+}
+
 .panel-frame {
   background: rgba(26, 31, 36, 0.75);
   backdrop-filter: blur(12px);
@@ -30,4 +34,21 @@
 
 .panel-body {
   padding: var(--tza-panel-padding);
+}
+
+.panel-header.custom-header {
+  padding: 0;
+}
+
+.panel-frame.fill-height {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  .panel-body {
+    flex: 1;
+    min-height: 0;
+    padding: 0;
+    overflow: hidden;
+  }
 }

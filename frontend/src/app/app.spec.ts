@@ -1,11 +1,17 @@
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { signal } from '@angular/core';
+import { computed, signal } from '@angular/core';
 import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { vi, expect, describe, it, beforeEach } from 'vitest';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { App } from './app';
 import { WasmService, type ValueLens, type SearchStatus } from './services/wasm.service';
+import { MapService } from './services/map.service';
+
+const mockMapService = {
+  indexResource: { status: signal('idle' as const), value: signal(undefined), error: signal(undefined), isLoading: computed(() => false) },
+  areas: signal([]),
+};
 
 const mockWasm = {
   isReady: vi.fn(() => false),
@@ -29,6 +35,7 @@ describe('App', () => {
       imports: [App, NoopAnimationsModule],
     })
       .overrideProvider(WasmService, { useValue: mockWasm })
+      .overrideProvider(MapService, { useValue: mockMapService })
       .compileComponents();
   });
 
@@ -97,6 +104,7 @@ describe('App — pivotPosition is not reset by push() after a row click', () =>
     await TestBed.configureTestingModule({
       imports: [App, NoopAnimationsModule],
     })
+      .overrideProvider(MapService, { useValue: mockMapService })
       .overrideProvider(WasmService, {
         useValue: {
           isReady: signal(false),
