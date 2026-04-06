@@ -34,7 +34,7 @@ jobs:
         run: cargo test --locked -p ffxii_tza_rng
 
       - name: cargo deny
-        uses: EmbarkStudios/cargo-deny-action@v1
+        uses: EmbarkStudios/cargo-deny-action@v2
         with:
           command: check advisories bans licenses sources
 

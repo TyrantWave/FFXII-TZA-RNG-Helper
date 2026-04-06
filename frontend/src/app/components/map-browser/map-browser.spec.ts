@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
-import { expect, describe, it, beforeEach, afterEach } from 'vitest';
+import { expect, describe, it, afterEach } from 'vitest';
 import { Component } from '@angular/core';
 import { MapBrowser } from './map-browser';
 import type { AreaEntry, MapData } from '../../services/map.service';
