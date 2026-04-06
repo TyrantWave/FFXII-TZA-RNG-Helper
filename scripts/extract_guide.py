@@ -1,6 +1,8 @@
 """
 Extract chest data from the FFXII IZJS guide HTML (MainGuideDownload.html).
 Outputs per-sub-area JSON files matching the schema in map_data.rs.
+
+GameFAQs dumps the entire txt into <pre> tags intead of just giving a txt download, instead of messing with that just split the saved page out - works fine.
 """
 
 import argparse
@@ -31,6 +33,44 @@ TRANSLATIONS = {
 
 SUB_AREA_CORRECTIONS = {
     ("BARHEIM PASSAGE", "Op Sector 37"): "Op Sector 36",  # guide has two "Op Sector 37"; first is actually 36
+    ("TCHITA UPLANDS",  "The Higlands"):  "The Highlands",  # guide typo
+}
+
+# Sub-areas whose image filename cannot be derived from the name — map by exact sub_area string.
+MANUAL_IMAGE_MAP = {
+    "Greencrag":                 "1 - Green Crag.jpg",
+    "The Haamilkah Water-Steps": "5 - The Haalm kah Water-Steps.jpg",
+    "Walk of Steel":             "9 - Ward of Steel.jpg",
+    "Those Who Thirst Not":      "1 - They Who Thirst Not.jpg",
+    "Antechamber - East":        "Sky Fortress Bahamut.jpg",
+    "Antechamber - North":       "Sky Fortress Bahamut.jpg",
+    "Antechamber - South":       "Sky Fortress Bahamut.jpg",
+    "Antechamber - West":        "Sky Fortress Bahamut.jpg",
+    # Balfonheim Port: parenthetical suffix in sub-area name beyond the image filename
+    "Canal Lane (inside E 'Port Villa')":   "3 - Canal Lane.jpg",
+    "Canal Lane (inside W 'Port Villa')":   "3 - Canal Lane.jpg",
+    "Quayside Court (inside The Whitecap)": "2 - Quayside Court.jpg",
+    # Pharos Second Ascent: image filename has a parenthetical annotation
+    "Cleft of Profaning Wind": "7 - Cleft of Profaning Wind (Fenrir Fight only).jpg",
+    # The Great Crystal: 17 sub-areas share 8 hand-drawn composite images.
+    # Fill in after visually inspecting ~/Downloads/FFXII -IZJS- Maps/The Great Crystal/
+    "Kabonii Jilaam Pratii'vaa":  "1 - The Great Crystal - 1.jpg",
+    "Kabnoii Jilaam Avaa":        "1 - The Great Crystal - 1.jpg",
+    "Bhrum Pis Avaa":             "2 - The Great Crystal - 2.jpg",
+    "Bhrum Pis Pratii":           "2 - The Great Crystal - 2.jpg",
+    "Trahk Jilaam Praa'dii":      "3 - The Great Crystal - 3.jpg",
+    "Trahk Pis Praa":             "3 - The Great Crystal - 3.jpg",
+    "Dhebon Jilaam Avaapratii":   "4 - The Great Crystal - 4.jpg",
+    "Sirhru Phullam Praa":        "5 - The Great Crystal - 5.jpg",
+    "Sirhru Phullam Praa'vaa":    "5 - The Great Crystal - 5.jpg",
+    "Sirhru Jilaam Praa'vaa":     "5 - The Great Crystal - 5.jpg",
+    "Sirhru Phullam Pratii'vaa":  "5 - The Great Crystal - 5.jpg",
+    "Sirhru Phullam Udiipratii":  "5 - The Great Crystal - 5.jpg",
+    "Sirhru Jilaam Pratii'vaa":   "5 - The Great Crystal - 5.jpg",
+    "Uldobi Phullam Udiipraa":    "6 - The Great Crystal - 6.jpg",
+    "Crystal Peak":               "7 - The Great Crystal - 7.jpg",
+    "Uldobi Phullam Pratii":      "6 - The Great Crystal - 6.jpg",
+    "Uldobi Phullam Pratii'dii":  "6 - The Great Crystal - 6.jpg",
 }
 
 # ─── guide zone name → display folder name (None = skip or special-cased) ──────
@@ -227,6 +267,8 @@ def build_image_index(maps_dir):
             # Strip leading "N - " or "N  - " prefix from filename
             name = os.path.splitext(fname)[0]
             name = re.sub(r"^\d+\s*-+\s*", "", name).strip()
+            # Strip leading area-name prefix (e.g. "Draklor Laboratory - ")
+            name = re.sub(r"^[A-Za-z][^-]+ - ", "", name).strip() or name
             file_slug = slugify(name)
             index[(folder_slug, file_slug)] = fname
     return index
@@ -236,15 +278,27 @@ def find_image(image_index, folder_name, sub_area_name):
     """Return image filename for a sub-area, or None if not found."""
     folder_slug = slugify(folder_name)
     sub_slug = slugify(sub_area_name)
-    # Exact match
-    key = (folder_slug, sub_slug)
-    if key in image_index:
-        return image_index[key]
-    # Partial match: sub_slug is a prefix of the indexed key (handles parenthetical suffixes)
-    for (fs, ss), fname in image_index.items():
-        if fs == folder_slug and (ss.startswith(sub_slug) or sub_slug.startswith(ss)):
-            return fname
-    return None
+
+    def _match(slug):
+        key = (folder_slug, slug)
+        if key in image_index:
+            return image_index[key]
+        for (fs, ss), fname in image_index.items():
+            if fs == folder_slug and (ss.startswith(slug) or slug.startswith(ss)):
+                return fname
+        return None
+
+    result = _match(sub_slug)
+    if result:
+        return result
+    # Retry with leading article stripped (e.g. "the-omen-spur" → "omen-spur")
+    stripped = re.sub(r"^(the|a|an)-", "", sub_slug)
+    if stripped != sub_slug:
+        result = _match(stripped)
+        if result:
+            return result
+    # Fall back to explicit manual mapping
+    return MANUAL_IMAGE_MAP.get(sub_area_name) or None
 
 
 # ─── parsing ────────────────────────────────────────────────────────────────────
@@ -472,7 +526,7 @@ def main():
     parser.add_argument(
         "--guide",
         default=os.path.expanduser("~/Downloads/MainGuideDownload.html"),
-        help="Path to MainGuideDownload.html",
+        help="Path to MainGuideDownload.html (whatever you saved the page as.)",
     )
     parser.add_argument(
         "--maps-dir",
